@@ -190,15 +190,15 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P3.1 | `repositories/product.repository.ts` : `findById`, `findBySlug`, `findAll(pagination)`, `findByCategory`, `search`, `findRelated` | Retourne des types du domaine, jamais des items DynamoDB bruts | `test-driven-development`, `anthropic-skills:backend-patterns` |
-| P3.2 | `repositories/category.repository.ts` : `findAll`, `findBySlug` | Idem | `test-driven-development` |
-| P3.3 | `repositories/user.repository.ts` : `findOrCreate(sessionId)`, `update` | Création implicite à la première visite | `test-driven-development` |
-| P3.4 | `repositories/cart.repository.ts` : `list`, `upsertItem`, `updateQuantity`, `removeItem`, `clear` | `upsertItem` utilise `UpdateExpression ADD quantity` → anti-doublon natif | `test-driven-development`, `anthropic-skills:backend-patterns` |
-| P3.5 | `repositories/wishlist.repository.ts` : `list`, `add`, `remove`, `has` | `add` avec `ConditionExpression attribute_not_exists(PK)` → doublon impossible | `test-driven-development` |
-| P3.6 | Mappers item DynamoDB ↔ entité du domaine | Le reste de l'application ignore l'existence de `PK`/`SK`/`GSI1PK` | `composition-patterns`, `safe-refactor` |
-| P3.7 | Traduction des erreurs SDK en erreurs applicatives (`ConditionalCheckFailed` → `DuplicateError`, etc.) | Aucune erreur AWS brute ne remonte à l'UI | `anthropic-skills:backend-patterns`, `systematic-debugging` |
-| P3.8 | Pagination par `LastEvaluatedKey` encodée en curseur opaque | Pas de `Scan` non borné, pas de pagination par offset | `anthropic-skills:backend-patterns` |
-| P3.9 | Tests d'intégration des repositories contre DynamoDB Local | Chaque méthode couverte, y compris les cas d'erreur | `test-driven-development`, `verification-before-completion` |
+| P3.1 | ✅ `repositories/product.repository.ts` : `findById`, `findBySlug`, `findAll`, `findByCategory`, `findPage`, `findManyByIds` | Retourne des types du domaine, jamais des items bruts. **`search` et `findRelated` retirés d'ici** : P4.6 et P4.7 les décrivaient déjà comme de la logique métier, et la même règle ne vit pas dans deux couches | `test-driven-development`, `anthropic-skills:backend-patterns` |
+| P3.2 | ✅ `repositories/category.repository.ts` : `findAll`, `findBySlug` | Tri par `position` en mémoire : un index pour ordonner huit éléments coûterait plus qu'il ne rapporte | `test-driven-development` |
+| P3.3 | ✅ `repositories/user.repository.ts` : `findById`, `findOrCreate`, `touch`, `updateProfile`, `deleteAll` | Création implicite à la première visite | `test-driven-development` |
+| P3.4 | ✅ `repositories/cart.repository.ts` : `list`, `incrementItem`, `setQuantity`, `removeItem`, `clear` | `upsertItem` utilise `UpdateExpression ADD quantity` → anti-doublon natif | `test-driven-development`, `anthropic-skills:backend-patterns` |
+| P3.5 | ✅ `repositories/wishlist.repository.ts` : `list`, `add`, `remove`, `has` | `add` avec `ConditionExpression attribute_not_exists(PK)` → doublon impossible | `test-driven-development` |
+| P3.6 | ✅ Mappers item DynamoDB ↔ entité du domaine | Le reste de l'application ignore l'existence de `PK`/`SK`/`GSI1PK` | `composition-patterns`, `safe-refactor` |
+| P3.7 | ✅ Traduction des erreurs SDK en erreurs applicatives (`ConditionalCheckFailed` → `DuplicateError`, etc.) | Aucune erreur AWS brute ne remonte à l'UI | `anthropic-skills:backend-patterns`, `systematic-debugging` |
+| P3.8 | ✅ Pagination par `LastEvaluatedKey` encodée en curseur opaque | Pas de `Scan` non borné, pas de pagination par offset | `anthropic-skills:backend-patterns` |
+| P3.9 | ✅ Tests d'intégration des repositories contre DynamoDB Local (57 tests) | Chaque méthode couverte, y compris les cas d'erreur | `test-driven-development`, `verification-before-completion` |
 
 ---
 
@@ -637,7 +637,7 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 | Jalon | Condition de passage |
 | --- | --- |
 | **M1 : Socle** | ✅ Fin P0+P1 : le projet démarre, la DA est figée, la matrice des états est écrite |
-| **M2 : Données** | Fin P2+P3 : la table est peuplée, les repositories sont testés, le TTL est prévu dans le schéma |
+| **M2 : Données** | ✅ Fin P2+P3 : la table est peuplée, les repositories sont testés, le TTL est prévu dans le schéma |
 | **M3 : Métier** | Fin P4+P5 : l'API répond au `curl` avec de vraies données, la logique est couverte |
 | **M4 : Produit** | Fin P6+P7+P8 : le site est navigable de bout en bout, panier et wishlist marchent |
 | **M5 : Qualité** | Fin P9+P10+P11+P12 : états complets, Lighthouse ≥ 90, CI verte, revues passées |
@@ -666,19 +666,25 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P2.0 → P2.10**, jalon M1 atteint : P0 et P1 sont terminées, la direction artistique est figée
-dans `globals.css` et le cadrage dans [ARCHITECTURE.md](./ARCHITECTURE.md).
+**P4.1 → P4.10, la couche services.** Jalon M2 atteint : les cinq repositories existent, chaque
+méthode est couverte contre DynamoDB Local, et aucune commande du SDK ne vit ailleurs que dans
+`src/server/repositories/`.
 
-L'ordre de la phase P2 :
+C'est la phase la plus notée du projet : le brief évalue la logique métier avant tout le reste.
 
-1. **P2.0 / P2.0b** : outillage (deps, Vitest, scripts npm) et CI. Rien ne s'écrit avant.
-2. **P2.10**, DynamoDB Local via Docker : le développement n'attend aucun compte AWS.
-3. **P2.1 / P2.2** : patterns d'accès puis clés, jamais l'inverse. C'est ici que se tranchent
-   l'attribut `expiresAt` (P16.7) et la stratégie de recherche.
-4. **P2.3 / P2.4** : schémas Zod et types inférés, puis les fabriques de clés.
-5. **P2.6 / P2.7 / P2.8** : client, création de table, seed de ~45 produits audio.
-6. **P2.9** : `DATA-MODEL.md`, exigence explicite du brief.
+1. **P4.1 à P4.4**, le service panier : bornes de quantité, fusion, arithmétique en centimes,
+   jointure avec les produits, lignes orphelines, et un récapitulatif unique réutilisé par l'UI
+   comme par l'API.
+2. **P4.5**, le service wishlist, dont l'ajout idempotent qui absorbe le `ConflictError` remonté
+   par le repository.
+3. **P4.6 et P4.7** : recherche, filtres, tri et produits associés, qui n'existent que là.
+4. **P4.8**, le service utilisateur et la session.
+5. **P4.9** : la hiérarchie d'erreurs, déjà écrite en P3 parce que P3.7 en dépendait.
+6. **P4.10** : revue avant de brancher la moindre ligne d'interface.
 
-Sur les trois décisions coûteuses à rattraper : **OKLCH est fait** (P17.3, anticipé en P1.4) et
-**l'attribut `expiresAt` est en place** (P16.7, anticipé en P2.2, TTL déjà activé sur la table).
-Reste la dérivation serveur de l'identité utilisateur, à tenir dès les signatures de P3.
+Tout s'écrit en test d'abord. Les services reçoivent leurs repositories en paramètre, donc ils se
+testent sans Docker et sans base.
+
+Sur les trois décisions coûteuses à rattraper, les trois sont tenues : **OKLCH** (P1.4),
+**`expiresAt`** avec TTL actif sur la table (P2.2), et **la dérivation serveur de l'identité**,
+qui est un paramètre de chaque méthode de repository et ne peut pas venir d'une entrée client.
