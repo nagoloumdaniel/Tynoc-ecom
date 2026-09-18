@@ -106,5 +106,6 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P0 : Fondations du dépôt | ✅ Terminée |
 | P1 : Cadrage & direction artistique | ✅ Terminée |
 | P2 : Modèle de données & DynamoDB | ✅ Terminée |
-| P3 : Couche repositories | ⬜ En cours |
-| P4 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P3 : Couche repositories | ✅ Terminée |
+| P4 : Couche services | ⬜ En cours |
+| P5 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
