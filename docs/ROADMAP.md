@@ -209,16 +209,16 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P4.1 | `services/cart.service.ts`, ajout : borne de quantité (1..stock), fusion si déjà présent, produit inexistant rejeté | Règles écrites en tests **avant** le code | `test-driven-development`, `brainstorming` |
-| P4.2 | Calcul du sous-total : arithmétique en centimes (entiers), jamais en flottants | `19.99 × 3` donne exactement `59.97` ; test dédié | `test-driven-development` |
-| P4.3 | Enrichissement du panier : jointure lignes ↔ produits, gestion d'un produit supprimé entre-temps | Ligne orpheline signalée, pas de crash | `test-driven-development`, `systematic-debugging` |
-| P4.4 | Récapitulatif panier : nombre d'articles, sous-total, éventuels frais/remises (transparents) | Une seule fonction de calcul, réutilisée par l'UI et l'API | `composition-patterns` |
-| P4.5 | `services/wishlist.service.ts` : ajout idempotent, bascule, « déplacer vers le panier » | Ajouter deux fois n'est pas une erreur utilisateur | `test-driven-development` |
-| P4.6 | `services/product.service.ts` : recherche (titre + tags), filtres (catégorie, prix min/max, dispo), tri (prix ↑↓, nouveauté) | Filtres combinables ; paramètres invalides → valeurs par défaut sûres | `test-driven-development`, `anthropic-skills:backend-patterns` |
-| P4.7 | Algorithme de produits associés (même catégorie, tags partagés, exclusion du produit courant, limite 4) | Déterministe et testé | `test-driven-development` |
-| P4.8 | `services/user.service.ts` : session, profil, rattachement panier/wishlist | Un utilisateur anonyme conserve son panier entre les visites | `test-driven-development` |
-| P4.9 | Hiérarchie d'erreurs `lib/errors.ts` : `AppError` → `NotFoundError`, `ValidationError`, `ConflictError`, `DatabaseError` | Code d'erreur + statut HTTP portés par l'erreur, pas par l'appelant | `anthropic-skills:backend-patterns` |
-| P4.10 | Revue de la logique métier avant de brancher l'UI | Aucune règle métier ne fuit vers les composants | `caveman-review`, `/code-review` |
+| P4.1 | ✅ `services/cart.service.ts`, ajout : borne de quantité (1..stock), fusion si déjà présent, produit inexistant rejeté | Règles écrites en tests **avant** le code | `test-driven-development`, `brainstorming` |
+| P4.2 | ✅ Calcul du sous-total : arithmétique en centimes (entiers), jamais en flottants | `19.99 × 3` donne exactement `59.97` ; test dédié | `test-driven-development` |
+| P4.3 | ✅ Enrichissement du panier : jointure lignes ↔ produits, gestion d'un produit supprimé entre-temps | Ligne orpheline signalée, pas de crash | `test-driven-development`, `systematic-debugging` |
+| P4.4 | ✅ Récapitulatif panier : nombre d'articles, sous-total, éventuels frais/remises (transparents) | Une seule fonction de calcul, réutilisée par l'UI et l'API | `composition-patterns` |
+| P4.5 | ✅ `services/wishlist.service.ts` : ajout idempotent, bascule, « déplacer vers le panier » | Ajouter deux fois n'est pas une erreur utilisateur | `test-driven-development` |
+| P4.6 | ✅ `services/product.service.ts` : recherche (titre + tags), filtres (catégorie, prix min/max, dispo), tri (prix ↑↓, nouveauté) | Filtres combinables ; paramètres invalides → valeurs par défaut sûres | `test-driven-development`, `anthropic-skills:backend-patterns` |
+| P4.7 | ✅ Algorithme de produits associés (même catégorie, tags partagés, exclusion du produit courant, limite 4) | Déterministe et testé | `test-driven-development` |
+| P4.8 | ✅ `services/user.service.ts` : session, profil, rattachement panier/wishlist | Un utilisateur anonyme conserve son panier entre les visites | `test-driven-development` |
+| P4.9 | ✅ Hiérarchie d'erreurs `lib/errors.ts` (livrée en P3, dont P3.7 dépendait) : `AppError` → `NotFoundError`, `ValidationError`, `ConflictError`, `DatabaseError` | Code d'erreur + statut HTTP portés par l'erreur, pas par l'appelant | `anthropic-skills:backend-patterns` |
+| P4.10 | ✅ Revue de la logique métier avant de brancher l'UI | 5 défauts réels corrigés en TDD. Aucun service n'importe de repository : le câblage vit dans `services/index.ts` | `caveman-review`, `/code-review` |
 
 ---
 
@@ -666,25 +666,20 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P4.1 → P4.10, la couche services.** Jalon M2 atteint : les cinq repositories existent, chaque
-méthode est couverte contre DynamoDB Local, et aucune commande du SDK ne vit ailleurs que dans
-`src/server/repositories/`.
+**P5.1 → P5.12, la couche API et les Server Actions.** P4 est terminée : la logique métier est
+écrite, isolée de tout framework, et couverte par 158 tests unitaires qui tournent sans base ni
+conteneur.
 
-C'est la phase la plus notée du projet : le brief évalue la logique métier avant tout le reste.
+Il reste P5 pour clore le jalon M3.
 
-1. **P4.1 à P4.4**, le service panier : bornes de quantité, fusion, arithmétique en centimes,
-   jointure avec les produits, lignes orphelines, et un récapitulatif unique réutilisé par l'UI
-   comme par l'API.
-2. **P4.5**, le service wishlist, dont l'ajout idempotent qui absorbe le `ConflictError` remonté
-   par le repository.
-3. **P4.6 et P4.7** : recherche, filtres, tri et produits associés, qui n'existent que là.
-4. **P4.8**, le service utilisateur et la session.
-5. **P4.9** : la hiérarchie d'erreurs, déjà écrite en P3 parce que P3.7 en dépendait.
-6. **P4.10** : revue avant de brancher la moindre ligne d'interface.
+1. **P5.1** : l'enveloppe de réponse et le `handleRoute` commun, y compris le mapping
+   `AppError` vers statut HTTP, que la hiérarchie d'erreurs rend mécanique.
+2. **P5.2 à P5.6** : les routes de lecture puis le CRUD panier et wishlist, paramètres validés
+   par Zod.
+3. **P5.7** : les Server Actions, avec `revalidatePath` ciblé et un retour typé.
+4. **P5.8** : le middleware de session, cookie httpOnly signé. C'est le seul endroit où
+   l'identité se dérive, et tout le reste du code la reçoit déjà en paramètre.
+5. **P5.9 à P5.12** : erreurs centralisées, garde-fous d'abus, `docs/API.md`, tests des routes.
 
-Tout s'écrit en test d'abord. Les services reçoivent leurs repositories en paramètre, donc ils se
-testent sans Docker et sans base.
-
-Sur les trois décisions coûteuses à rattraper, les trois sont tenues : **OKLCH** (P1.4),
-**`expiresAt`** avec TTL actif sur la table (P2.2), et **la dérivation serveur de l'identité**,
-qui est un paramètre de chaque méthode de repository et ne peut pas venir d'une entrée client.
+Le travail de P3 et P4 a préparé cette phase : les services ne connaissent pas HTTP, donc les
+routes n'ont qu'à valider, appeler, et traduire une erreur en statut.
