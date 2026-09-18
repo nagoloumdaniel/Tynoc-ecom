@@ -1,0 +1,37 @@
+# DynamoDB Local (P2.10).
+#
+# Prérequis de développement, et non option : les tests d'intégration des
+# repositories (P3.9) et la suite P11.4 tournent contre ce conteneur. Le
+# développement n'exige donc aucun compte AWS, qui n'est créé qu'en P14 pour
+# la production.
+#
+#   docker compose up -d      démarre la base sur le port 8000
+#   docker compose down       arrête et supprime le conteneur
+#
+# Les données vivent dans un volume nommé : elles survivent à un redémarrage,
+# et `docker compose down -v` remet tout à zéro.
+
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:2.5.2
+    container_name: tynoc-dynamodb
+    ports:
+      - "8000:8000"
+    # `-sharedDb` force une seule base pour toutes les régions et tous les
+    # jeux de clés. Sans cette option, une clé d'accès différente ouvrirait
+    # une base vide et le seed semblerait avoir disparu.
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/data"]
+    working_dir: /home/dynamodblocal
+    user: root
+    volumes:
+      - dynamodb-data:/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8000 | grep -q 400"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  dynamodb-data:

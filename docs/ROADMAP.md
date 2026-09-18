@@ -168,18 +168,18 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| **P2.0** | **Outillage** : dépendances (`@aws-sdk/client-dynamodb`, `lib-dynamodb`, `tsx`), harnais **Vitest**, scripts npm `test`, `db:create-table`, `db:seed` | `npm test` répond avant la première ligne de repository : P3 et P4 sont en TDD, le harnais ne peut pas arriver en P11 | `test-driven-development`, `lean-build` |
-| **P2.0b** | **CI GitHub Actions** : `verify` + `test` sur chaque push | Remontée ici depuis P11.8 : 20 min de mise en place qui rattrapent les régressions pendant tout le reste du projet | `lean-build` |
-| P2.1 | Formaliser les 11 patterns d'accès (section 0) avant toute clé | Tableau validé dans `docs/DATA-MODEL.md` | `brainstorming`, `anthropic-skills:backend-patterns` |
-| P2.2 | Concevoir le single-table design : `PK`/`SK` + GSI1 (catégorie/listing) + GSI2 (slug) + attribut `expiresAt` | Chaque pattern d'accès résolu par une `Query`, jamais par un `Scan`. **La stratégie de recherche est tranchée ici** (chargement borné + filtrage applicatif), pas découverte en P4.6 | `anthropic-skills:backend-patterns`, `writing-plans` |
-| P2.3 | Types du domaine (`types/`) + schémas Zod (`schemas/`) : User, Product, Category, CartItem, WishlistItem | Types inférés depuis Zod (`z.infer`), aucune duplication manuelle | `anthropic-skills:backend-patterns` |
-| P2.4 | Fabriques de clés `lib/keys.ts` (`productKey`, `cartItemKey`…) | Aucune string de clé concaténée à la main hors de ce fichier | `composition-patterns`, `safe-refactor` |
+| **P2.0** | ✅ **Outillage** : dépendances (`@aws-sdk/client-dynamodb`, `lib-dynamodb`, `tsx`), harnais **Vitest**, scripts npm `test`, `db:create-table`, `db:seed` | `npm test` répond avant la première ligne de repository : P3 et P4 sont en TDD, le harnais ne peut pas arriver en P11 | `test-driven-development`, `lean-build` |
+| **P2.0b** | ✅ **CI GitHub Actions** : `verify` + `test` sur chaque push | Remontée ici depuis P11.8 : 20 min de mise en place qui rattrapent les régressions pendant tout le reste du projet | `lean-build` |
+| P2.1 | ✅ Formaliser les 11 patterns d'accès (section 0) avant toute clé | Tableau validé dans `docs/DATA-MODEL.md` | `brainstorming`, `anthropic-skills:backend-patterns` |
+| P2.2 | ✅ Concevoir le single-table design : `PK`/`SK` + GSI1 (catégorie/listing) + GSI2 (slug) + attribut `expiresAt` | Chaque pattern d'accès résolu par une `Query`, jamais par un `Scan`. **La stratégie de recherche est tranchée ici** (chargement borné + filtrage applicatif), pas découverte en P4.6 | `anthropic-skills:backend-patterns`, `writing-plans` |
+| P2.3 | ✅ Types du domaine (`types/`) + schémas Zod (`schemas/`) : User, Product, Category, CartItem, WishlistItem | Types inférés depuis Zod (`z.infer`), aucune duplication manuelle | `anthropic-skills:backend-patterns` |
+| P2.4 | ✅ Fabriques de clés `lib/keys.ts` (`productKey`, `cartItemKey`…) | Aucune string de clé concaténée à la main hors de ce fichier | `composition-patterns`, `safe-refactor` |
 | ~~P2.5~~ | ~~Compte AWS + utilisateur IAM dédié~~ → **déplacé en P14.1** | Le développement se fait sur DynamoDB Local. Créer le compte AWS maintenant n'apporterait ni coût ni sécurité utiles, seulement des clés à garder 10 phases durant | `anthropic-skills:frontend-security-coder`, `/security-review` |
-| P2.6 | Client DynamoDB singleton `lib/dynamodb.ts` (DocumentClient, `removeUndefinedValues`) | Une seule instanciation, réutilisée à travers les invocations | `anthropic-skills:nodejs-backend-patterns` |
-| P2.7 | `scripts/create-table.ts` : création idempotente table + GSI, `PAY_PER_REQUEST` | Relançable sans erreur ; documenté dans le README | `anthropic-skills:nodejs-backend-patterns`, `migration` |
-| P2.8 | `scripts/seed.ts` : 6 à 8 catégories, 40+ produits réalistes (titre, description, prix, stock, images, tags) | `BatchWriteItem` par lots de 25 ; jeu de données crédible, pas de lorem ipsum | `anthropic-skills:nodejs-backend-patterns`, `copywriting` |
-| P2.9 | Rédiger `docs/DATA-MODEL.md` : entités, clés, GSI, et les 4 opérations CRUD par entité | Exigence explicite du brief (« document how the application reads, creates, updates, deletes ») | `anthropic-skills:technical-writer`, `anthropic-skills:docs-writer` |
-| P2.10 | **Prérequis** (et non plus « option ») : DynamoDB Local via Docker | P3.9 et P11.4 en dépendent, et c'est le chemin nominal de développement. `docker-compose.yml` versionné, `DYNAMODB_ENDPOINT` pris en compte par le client | `lean-build` |
+| P2.6 | ✅ Client DynamoDB singleton `lib/dynamodb.ts` (DocumentClient, `removeUndefinedValues`) | Une seule instanciation, réutilisée à travers les invocations | `anthropic-skills:nodejs-backend-patterns` |
+| P2.7 | ✅ `scripts/create-table.ts` : création idempotente table + GSI, `PAY_PER_REQUEST` | Relançable sans erreur ; documenté dans le README | `anthropic-skills:nodejs-backend-patterns`, `migration` |
+| P2.8 | ✅ `scripts/seed.ts` : 6 à 8 catégories, 40+ produits réalistes (titre, description, prix, stock, images, tags) | `BatchWriteItem` par lots de 25 ; jeu de données crédible, pas de lorem ipsum | `anthropic-skills:nodejs-backend-patterns`, `copywriting` |
+| P2.9 | ✅ Rédiger `docs/DATA-MODEL.md` : entités, clés, GSI, et les 4 opérations CRUD par entité | Exigence explicite du brief (« document how the application reads, creates, updates, deletes ») | `anthropic-skills:technical-writer`, `anthropic-skills:docs-writer` |
+| P2.10 | ✅ **Prérequis** (et non plus « option ») : DynamoDB Local via Docker | P3.9 et P11.4 en dépendent, et c'est le chemin nominal de développement. `docker-compose.yml` versionné, `DYNAMODB_ENDPOINT` pris en compte par le client | `lean-build` |
 
 ---
 
@@ -679,6 +679,6 @@ L'ordre de la phase P2 :
 5. **P2.6 / P2.7 / P2.8** : client, création de table, seed de ~45 produits audio.
 6. **P2.9** : `DATA-MODEL.md`, exigence explicite du brief.
 
-Sur les trois décisions coûteuses à rattraper : **OKLCH est fait** (P17.3, anticipé en P1.4).
-Restent l'attribut `expiresAt` et la dérivation serveur de l'identité, tous deux à traiter
-pendant P2/P3 : voir `ARCHITECTURE.md` § 4.
+Sur les trois décisions coûteuses à rattraper : **OKLCH est fait** (P17.3, anticipé en P1.4) et
+**l'attribut `expiresAt` est en place** (P16.7, anticipé en P2.2, TTL déjà activé sur la table).
+Reste la dérivation serveur de l'identité utilisateur, à tenir dès les signatures de P3.

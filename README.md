@@ -11,6 +11,8 @@ Application e-commerce full-stack construite avec Next.js, TypeScript et AWS Dyn
 | --- | --- |
 | [docs/BRIEF.md](docs/BRIEF.md) | Le besoin : énoncé traduit, référence contractuelle |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Plan d'exécution complet : 18 phases, 216 tâches |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Périmètre, direction artistique, états d'écran, parcours, couches |
+| [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | Single-table design, 11 patterns d'accès, opérations CRUD |
 | [AGENTS.md](AGENTS.md) | Conventions de code et règle de dépendance entre couches |
 
 ## Stack technique
@@ -45,10 +47,17 @@ git clone https://github.com/Nagoloum/Tynoc-ecom.git
 cd Tynoc-ecom
 npm install
 cp .env.example .env.local   # puis renseigner les valeurs
+npm run db:up                # DynamoDB Local via Docker
+npm run db:create-table      # table, index et TTL
+npm run db:seed              # 8 catégories et 47 produits
 npm run dev
 ```
 
 L'application démarre sur <http://localhost:3000>.
+
+Le développement ne demande **aucun compte AWS** : DynamoDB Local tourne dans Docker et accepte
+n'importe quelle signature. Les valeurs de `.env.local` peuvent donc être factices en local, à
+l'exception de `SESSION_SECRET`.
 
 ### Variables d'environnement
 
@@ -79,7 +88,15 @@ npm run build         # build de production
 npm run typecheck     # vérification des types
 npm run lint          # ESLint
 npm run format        # Prettier
-npm run verify        # typecheck + lint + format, à passer avant tout commit
+npm test              # tests unitaires
+npm run test:watch    # tests unitaires en continu
+npm run test:integration  # tests contre DynamoDB Local (conteneur requis)
+npm run verify        # typecheck + lint + format + tests, à passer avant tout commit
+
+npm run db:up         # démarre DynamoDB Local
+npm run db:down       # arrête DynamoDB Local
+npm run db:create-table   # création idempotente de la table et des index
+npm run db:seed           # alimentation idempotente du catalogue
 ```
 
 ## Avancement
@@ -88,5 +105,6 @@ npm run verify        # typecheck + lint + format, à passer avant tout commit
 | --- | --- |
 | P0 : Fondations du dépôt | ✅ Terminée |
 | P1 : Cadrage & direction artistique | ✅ Terminée |
-| P2 : Modèle de données & DynamoDB | ⬜ En cours |
-| P3 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P2 : Modèle de données & DynamoDB | ✅ Terminée |
+| P3 : Couche repositories | ⬜ En cours |
+| P4 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |

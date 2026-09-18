@@ -1,0 +1,53 @@
+# Intégration continue (P2.0b).
+#
+# Remontée depuis P11.8 : mise en place ici, elle rattrape les régressions
+# pendant tout le reste du projet plutôt qu'à la toute fin.
+#
+# Le job `verify` n'a besoin d'aucun secret : `npm run typecheck`, `lint` et
+# `format:check` sont statiques, et les tests unitaires portent sur de la
+# logique pure, sans base de données. Les tests d'intégration arrivent en P3,
+# avec leur propre job et un service DynamoDB Local.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+# Un push qui en remplace un autre sur la même branche annule le précédent.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, format, tests unitaires
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      # `npm ci` et non `npm install` : installation reproductible depuis le
+      # lockfile, qui échoue si package.json et package-lock.json divergent.
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Tests unitaires
+        run: npm test
