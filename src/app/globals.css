@@ -1,26 +1,280 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Tynoc : socle de design (P1.4, P1.5, P17.3)
+
+   Source de vérité unique des tokens. Aucune valeur magique n'est autorisée
+   dans un composant : si une couleur, une taille de texte ou une durée n'est
+   pas ici, elle n'existe pas.
+
+   Trois partis pris structurants :
+
+   1. Couleur en OKLCH. La luminance y est perceptuellement uniforme, donc
+      « L 0.55 » rend le même poids visuel quelle que soit la teinte. Les
+      échelles se dérivent en faisant varier L, sans recalibrer à l'œil.
+
+   2. Thème via `light-dark()`. Chaque token porte ses deux valeurs sur une
+      seule ligne, ce qui rend l'écart clair/sombre lisible d'un coup d'œil et
+      supprime la duplication d'un bloc `@media` entier.
+
+   3. Conséquence directe : **aucun composant n'écrit jamais `dark:`**. Les
+      tokens basculent seuls. Une classe `dark:bg-…` dans un composant est un
+      bug, pas un style.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* `light dark` = on suit la préférence système. L'attribut `data-theme` sur
+     <html> force l'un ou l'autre (bascule manuelle, P6). */
+  color-scheme: light dark;
+
+  /* --- Surfaces -----------------------------------------------------------
+     En clair, l'élévation va vers le blanc. En sombre, elle va vers le gris
+     clair : c'est la luminosité qui porte la hiérarchie, pas une ombre. */
+  --surface-0: light-dark(oklch(0.985 0.002 250), oklch(0.178 0.006 250)); /* page */
+  --surface-1: light-dark(oklch(1 0 0), oklch(0.216 0.007 250)); /* carte, header */
+  --surface-2: light-dark(oklch(0.955 0.003 250), oklch(0.256 0.008 250)); /* champ, zone creuse */
+  --surface-3: light-dark(oklch(0.915 0.004 250), oklch(0.305 0.009 250)); /* survol, pressé */
+  --surface-inverse: light-dark(oklch(0.19 0.008 250), oklch(0.965 0.003 250));
+
+  /* --- Encre --------------------------------------------------------------
+     Quatre niveaux, pas plus. `faint` ne porte jamais d'information seule. */
+  --ink-strong: light-dark(oklch(0.215 0.008 250), oklch(0.975 0.003 250)); /* titres */
+  --ink: light-dark(oklch(0.36 0.007 250), oklch(0.875 0.004 250)); /* corps */
+  --ink-muted: light-dark(oklch(0.535 0.006 250), oklch(0.7 0.005 250)); /* secondaire */
+  --ink-faint: light-dark(oklch(0.68 0.005 250), oklch(0.545 0.006 250)); /* désactivé */
+  --ink-inverse: light-dark(oklch(0.975 0.003 250), oklch(0.19 0.008 250));
+
+  /* --- Traits ------------------------------------------------------------- */
+  --line-subtle: light-dark(oklch(0.905 0.004 250), oklch(0.295 0.008 250));
+  --line: light-dark(oklch(0.83 0.005 250), oklch(0.375 0.01 250));
+  --line-strong: light-dark(oklch(0.7 0.006 250), oklch(0.48 0.012 250));
+
+  /* --- Action primaire ----------------------------------------------------
+     Encre pleine, jamais l'ambre. Le contraste reste maximal dans les deux
+     thèmes, et l'accent garde sa valeur de signal parce qu'il reste rare. */
+  --action: light-dark(oklch(0.215 0.008 250), oklch(0.965 0.003 250));
+  --action-hover: light-dark(oklch(0.29 0.009 250), oklch(0.89 0.004 250));
+  --on-action: light-dark(oklch(0.985 0.002 250), oklch(0.165 0.008 250));
+
+  /* --- Couleurs sémantiques ----------------------------------------------
+     Trois, et chacune veut dire une chose précise.
+       signal (ambre, lampe de VU-mètre) → actif, sélectionné, attention
+       peak   (rouge, LED de crête)      → limite atteinte, erreur, destructif
+       jade                              → disponible, opération réussie
+     `-ink` = déclinaison lisible en texte sur surface ; la version de base
+     sert aux fonds, points d'état, bordures et anneaux de focus. */
+  --signal: light-dark(oklch(0.72 0.145 78), oklch(0.8 0.15 80));
+  --signal-ink: light-dark(oklch(0.48 0.115 65), oklch(0.845 0.14 82));
+  --signal-soft: light-dark(oklch(0.955 0.04 84), oklch(0.3 0.055 72));
+
+  --peak: light-dark(oklch(0.56 0.2 27), oklch(0.68 0.19 25));
+  --peak-ink: light-dark(oklch(0.49 0.19 27), oklch(0.76 0.15 25));
+  --peak-soft: light-dark(oklch(0.96 0.03 25), oklch(0.29 0.075 25));
+
+  --jade: light-dark(oklch(0.56 0.105 162), oklch(0.72 0.115 163));
+  --jade-ink: light-dark(oklch(0.46 0.1 162), oklch(0.78 0.1 163));
+  --jade-soft: light-dark(oklch(0.955 0.03 165), oklch(0.28 0.05 163));
+
+  /* --- Ombres -------------------------------------------------------------
+     Uniquement en clair. En sombre elles sont quasi nulles : l'élévation y
+     passe par `--surface-*` et par `--line`. */
+  --shadow-color: light-dark(oklch(0.3 0.03 250 / 0.1), oklch(0 0 0 / 0.45));
+  --shadow-color-strong: light-dark(oklch(0.3 0.03 250 / 0.16), oklch(0 0 0 / 0.6));
+
+  /* --- Focus --------------------------------------------------------------
+     L'ambre sert ici parce que l'anneau de focus est, par définition, la
+     chose active à l'écran. */
+  --ring: var(--signal);
+  --ring-offset: var(--surface-0);
+
+  /* --- Empilement ---------------------------------------------------------
+     À utiliser en `z-[var(--z-header)]`. Aucun z-index littéral ailleurs. */
+  --z-base: 0;
+  --z-sticky: 20;
+  --z-header: 50;
+  --z-drawer: 60;
+  --z-dialog: 70;
+  --z-toast: 80;
+}
+
+/* Bascule manuelle. `light-dark()` lit `color-scheme`, donc forcer l'un des
+   deux mots suffit à repeindre toute l'interface. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* --- Couleurs ----------------------------------------------------------
+     Exposées en utilitaires : `bg-surface-1`, `text-ink-muted`,
+     `border-line`, `text-peak-ink`… */
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-inverse: var(--surface-inverse);
+
+  --color-ink-strong: var(--ink-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-ink-inverse: var(--ink-inverse);
+
+  --color-line-subtle: var(--line-subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-on-action: var(--on-action);
+
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-signal-soft: var(--signal-soft);
+
+  --color-peak: var(--peak);
+  --color-peak-ink: var(--peak-ink);
+  --color-peak-soft: var(--peak-soft);
+
+  --color-jade: var(--jade);
+  --color-jade-ink: var(--jade-ink);
+  --color-jade-soft: var(--jade-soft);
+
+  /* --- Typographie -------------------------------------------------------
+     Une seule famille. Le caractère « display » vient de l'axe de chasse
+     (`font-stretch-*`) et du tracking négatif, pas d'une seconde police. */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+
+  /* Échelle fluide : la valeur basse vaut à 360 px, la haute à 1440 px.
+     Les interlignages se resserrent à mesure que le corps grandit. */
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: clamp(0.9375rem, 0.905rem + 0.14vw, 1rem);
+  --text-base--line-height: 1.6;
+  --text-lg: clamp(1.0625rem, 1rem + 0.28vw, 1.1875rem);
+  --text-lg--line-height: 1.55;
+  --text-xl: clamp(1.25rem, 1.15rem + 0.45vw, 1.5rem);
+  --text-xl--line-height: 1.35;
+  --text-2xl: clamp(1.5rem, 1.35rem + 0.7vw, 2rem);
+  --text-2xl--line-height: 1.25;
+  --text-3xl: clamp(1.875rem, 1.62rem + 1.15vw, 2.75rem);
+  --text-3xl--line-height: 1.15;
+  --text-4xl: clamp(2.375rem, 1.92rem + 2.02vw, 4rem);
+  --text-4xl--line-height: 1.05;
+  --text-5xl: clamp(3rem, 2.24rem + 3.38vw, 5.5rem);
+  --text-5xl--line-height: 0.98;
+
+  --tracking-tighter: -0.035em;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.02em;
+
+  /* --- Rayons ------------------------------------------------------------
+     Aluminium usiné : proches du carré, et un cran par niveau de hiérarchie
+     (badge < bouton < carte < feuille modale). */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* --- Ombres ------------------------------------------------------------ */
+  --shadow-xs: 0 1px 2px var(--shadow-color);
+  --shadow-sm: 0 1px 3px var(--shadow-color), 0 1px 2px -1px var(--shadow-color);
+  --shadow-md: 0 4px 12px -2px var(--shadow-color), 0 2px 4px -2px var(--shadow-color);
+  --shadow-lg: 0 12px 32px -8px var(--shadow-color-strong);
+
+  /* --- Mouvement (doctrine en docs/ARCHITECTURE.md § 7) ------------------
+     `snap` répond au doigt, `flow` déplace de la matière, `settle` fait
+     entrer un élément qui vient de loin. */
+  --ease-snap: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-flow: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --duration-instant: 90ms; /* retour d'état : survol, pression */
+  --duration-fast: 160ms; /* bascule : coche, cœur, compteur */
+  --duration-base: 240ms; /* entrée/sortie d'un élément */
+  --duration-slow: 400ms; /* surface entière : tiroir, dialogue */
+
+  /* --- Conteneur --------------------------------------------------------- */
+  --container-page: 80rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    /* Ancre l'échelle rem ; le reste du système est relatif. */
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background-color: var(--surface-0);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    /* Chiffres de même chasse : un prix ne change pas de largeur quand la
+       quantité passe de 9 à 10. */
+    font-variant-numeric: tabular-nums;
+    font-optical-sizing: auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--ink-strong);
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+    /* Pas de titre orphelin sur la dernière ligne. */
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Un seul anneau de focus pour toute l'application. Il est visible sur
+     toutes les surfaces parce qu'il porte son propre décalage. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--signal);
+    color: oklch(0.16 0.01 80);
+  }
+
+  /* Cibles tactiles : plancher de 44 px sur pointeur grossier (P9.5). */
+  @media (pointer: coarse) {
+    button,
+    a[role="button"],
+    [type="button"],
+    [type="submit"] {
+      min-height: 44px;
+    }
+  }
+
+  /* Le mouvement est une amélioration, jamais une condition de l'usage.
+     Les transitions deviennent des fondus quasi instantanés ; rien ne casse,
+     rien ne disparaît. (P17.17) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
