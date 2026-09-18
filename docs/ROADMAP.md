@@ -1,10 +1,10 @@
-# Roadmap — Tynoc E-Commerce
+# Roadmap : Tynoc E-Commerce
 
 > Plan d'exécution complet, de zéro jusqu'à la soumission finale.
 > Référence du besoin : [BRIEF.md](./BRIEF.md).
 > Chaque tâche porte les **skills** à invoquer pour la réaliser (mapping `~/.claude/CLAUDE.md`).
 
-**Légende des skills** — `nom` = skill tiers (`~/.claude/skills/`), `/nom` = skill natif du harness,
+**Légende des skills** : `nom` = skill tiers (`~/.claude/skills/`), `/nom` = skill natif du harness,
 `plugin:nom` = skill de plugin. Les skills transverses (`caveman`, `brainstorming`,
 `verification-before-completion`, `caveman-commit`) s'appliquent en toile de fond et ne sont
 rappelés que là où ils sont structurants.
@@ -28,6 +28,10 @@ Ces choix sont pris une fois pour toutes et ne seront pas rediscutés en cours d
 | Tests | **Vitest** (unitaire/intégration) + **Playwright** (E2E, parcours critiques) | Vitest s'aligne sur l'écosystème Vite/Next ; Playwright pour les 3 parcours clés |
 | Déploiement | **Vercel** + table DynamoDB région `eu-west-3` | Déploiement Next.js sans friction ; lien live demandé au rendu |
 | Images | `next/image` + images distantes (Unsplash/placeholder) déclarées dans `next.config` | Pas de binaires lourds dans le dépôt |
+| Environnement de dev | **DynamoDB Local (Docker)**, pas AWS réel | Coût nul, tests d'intégration hors ligne. Le compte AWS n'est créé qu'en P14 pour la production. `DYNAMODB_ENDPOINT` est le chemin nominal en développement |
+| Périmètre livrable | Core P0 → P14 **+ uniquement les tâches [E]** de P15/P16/P17 | M8 (livraison) prime sur le durcissement. Les [D] sont abandonnées, les [R] réévaluées après M5 |
+| Magasin | **Audio et matériel d'écoute** | Détermine le seed, les filtres et la direction artistique. Voir `ARCHITECTURE.md` § 2 |
+| Recherche | Chargement borné du catalogue + filtrage applicatif | DynamoDB ne fait pas de full-text. ~45 produits : la limite est assumée et documentée, pas masquée derrière un `Scan` paginé |
 
 ### Arborescence cible
 
@@ -96,7 +100,7 @@ Tynoc-ecom/
 `dynamodb`. Une couche n'appelle jamais une couche située plus haut, et un composant UI n'importe
 jamais un repository.
 
-### Modèle de données — patterns d'accès à couvrir
+### Modèle de données : patterns d'accès à couvrir
 
 Le single-table design se conçoit à partir des requêtes, jamais des entités.
 
@@ -119,7 +123,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P0 — Fondations du dépôt
+## Phase P0 : Fondations du dépôt
 
 **Objectif** : un dépôt qui démarre, se lint, se teste et se commite proprement.
 **Sortie de phase** : `npm run dev` affiche une page, `npm run lint` et `npm run typecheck` passent.
@@ -127,57 +131,59 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
 | P0.1 | ✅ Initialiser Next.js 16 + TS + Tailwind v4 dans le dépôt cloné | `create-next-app` avec App Router, `src/`, alias `@/*` ; `npm run dev` répond sur `:3000` | `lean-build`, `anthropic-skills:react-nextjs-development` |
-| P0.2 | Durcir `tsconfig.json` | `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `verbatimModuleSyntax` ; `npm run typecheck` vert | `anthropic-skills:react-nextjs-development` |
-| P0.3 | ESLint + Prettier + `eslint-plugin-tailwindcss` | `npm run lint` vert, formatage déterministe | `lean-build` |
-| P0.4 | Créer l'arborescence vide de la section 0 avec un `.gitkeep` par dossier | La structure de couches existe avant la première ligne de métier | `composition-patterns` |
-| P0.5 | `lib/env.ts` — validation des variables d'environnement au boot via Zod | Démarrage en échec explicite si une variable manque ; aucun `process.env` brut ailleurs | `anthropic-skills:frontend-security-coder`, `anthropic-skills:backend-patterns` |
-| P0.6 | `.env.example` + `.gitignore` durci (`.env*.local`, `.aws/`) | Aucun secret dans l'historique Git ; `git log -p` propre | `anthropic-skills:frontend-security-coder`, `/security-review` |
-| P0.7 | Conventions Git : branches `feat/…`, `fix/…`, `docs/…` + Conventional Commits | Documenté dans le README ; première branche créée | `caveman-commit`, `finishing-a-development-branch` |
-| P0.8 | `CLAUDE.md` de projet (stack, conventions, commandes) | Contexte persistant pour les sessions suivantes | `/init` |
-| P0.9 | Premier commit + push sur `main` | Le dépôt distant n'est plus vide | `caveman-commit` |
+| P0.2 | ✅ Durcir `tsconfig.json` | `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `verbatimModuleSyntax` ; `npm run typecheck` vert | `anthropic-skills:react-nextjs-development` |
+| P0.3 | ✅ ESLint + Prettier + `eslint-plugin-tailwindcss` | `npm run lint` vert, formatage déterministe | `lean-build` |
+| P0.4 | ✅ Créer l'arborescence vide de la section 0 avec un `.gitkeep` par dossier | La structure de couches existe avant la première ligne de métier | `composition-patterns` |
+| P0.5 | ✅ `lib/env.ts` : validation des variables d'environnement au boot via Zod | Démarrage en échec explicite si une variable manque ; aucun `process.env` brut ailleurs | `anthropic-skills:frontend-security-coder`, `anthropic-skills:backend-patterns` |
+| P0.6 | ✅ `.env.example` + `.gitignore` durci (`.env*.local`, `.aws/`) | Aucun secret dans l'historique Git ; `git log -p` propre | `anthropic-skills:frontend-security-coder`, `/security-review` |
+| P0.7 | ✅ Conventions Git : branches `feat/…`, `fix/…`, `docs/…` + Conventional Commits | Documenté dans le README ; première branche créée | `caveman-commit`, `finishing-a-development-branch` |
+| P0.8 | ✅ `CLAUDE.md` de projet (stack, conventions, commandes) | Contexte persistant pour les sessions suivantes | `/init` |
+| P0.9 | ✅ Premier commit + push sur `main` | Le dépôt distant n'est plus vide | `caveman-commit` |
 
 ---
 
-## Phase P1 — Cadrage produit & direction artistique
+## Phase P1 : Cadrage produit & direction artistique
 
 **Objectif** : savoir exactement à quoi ressemble le site avant d'écrire du CSS.
 **Sortie de phase** : tokens de design figés, inventaire des pages et des états validé.
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P1.1 | Cadrer le périmètre : ce qu'on fait, ce qu'on ne fait pas (pas de checkout, pas d'admin) | Section « Scope » dans `docs/ARCHITECTURE.md` | `brainstorming`, `writing-plans` |
-| P1.2 | Définir la niche du store (ex. tech/lifestyle) + ton éditorial | Évite le site générique « Product 1 / Product 2 » | `brainstorming`, `product-marketing` |
-| P1.3 | Direction artistique : éviter le rendu « template IA » | Palette, échelle typographique, rythme d'espacement, rayons, ombres — justifiés | `frontend-design`, `taste-skill`, `bencium-controlled-ux-designer` |
-| P1.4 | Design tokens Tailwind v4 (`@theme`) : couleurs, typo, spacing, radius, z-index | `globals.css` unique source de vérité ; zéro valeur magique dans les composants | `theme-factory`, `design:design-system` |
-| P1.5 | Mode sombre (tokens redéfinis, pas de classes dupliquées) | Bascule propre, contrastes conservés | `theme-factory`, `design:design-system` |
-| P1.6 | Inventaire exhaustif des écrans et de **chaque état** (idle / loading / empty / error / 404) | Tableau écran × état ; sert de checklist à P9 | `brainstorming`, `web-design-guidelines` |
-| P1.7 | Parcours utilisateur des 3 flux critiques (découverte → produit → panier ; recherche → filtre ; wishlist → panier) | Diagrammes de flux dans `docs/ARCHITECTURE.md` | `design:user-research`, `writing-plans` |
-| P1.8 | Doctrine de motion : ce qui anime, ce qui n'anime jamais | Durées et courbes standardisées, `prefers-reduced-motion` respecté | `motion-doctrine`, `motion-design` |
-| P1.9 | Micro-copy : libellés boutons, états vides, messages d'erreur | Pas de « Something went wrong » générique | `design:ux-copy`, `copywriting` |
+| P1.1 | ✅ Cadrer le périmètre : ce qu'on fait, ce qu'on ne fait pas (pas de checkout, pas d'admin) | `ARCHITECTURE.md` § 1 : inclut la règle de coupe et les exclusions justifiées | `brainstorming`, `writing-plans` |
+| P1.2 | ✅ Définir la niche du store + ton éditorial | `ARCHITECTURE.md` § 2 : audio et matériel d'écoute, ton factuel, un chiffre plutôt qu'un adjectif | `brainstorming`, `product-marketing` |
+| P1.3 | ✅ Direction artistique : éviter le rendu « template IA » | `ARCHITECTURE.md` § 3 : parti pris « instrument », chaque axe justifié **et** ce qui a été écarté | `frontend-design`, `taste-skill`, `bencium-controlled-ux-designer` |
+| P1.4 | ✅ Design tokens Tailwind v4 (`@theme`) : couleurs, typo, spacing, radius, z-index | `globals.css` : OKLCH, échelle typo fluide, un rayon par niveau de hiérarchie | `theme-factory`, `design:design-system` |
+| P1.5 | ✅ Mode sombre (tokens redéfinis, pas de classes dupliquées) | `light-dark()` + `data-theme` ; **aucun `dark:` dans les composants**, vérifiable par `grep` | `theme-factory`, `design:design-system` |
+| P1.6 | ✅ Inventaire exhaustif des écrans et de **chaque état** (idle / loading / empty / error / 404) | `ARCHITECTURE.md` § 5 : matrice 10 écrans × 4 états, checklist de P9 | `brainstorming`, `web-design-guidelines` |
+| P1.7 | ✅ Parcours utilisateur des 3 flux critiques | `ARCHITECTURE.md` § 6 : trois diagrammes + le point de vérité de chaque parcours | `design:user-research`, `writing-plans` |
+| P1.8 | ✅ Doctrine de motion : ce qui anime, ce qui n'anime jamais | `ARCHITECTURE.md` § 7 : 4 rôles, durées et courbes tokenisées, interdits explicites | `motion-doctrine`, `motion-design` |
+| P1.9 | ✅ Micro-copy : libellés boutons, états vides, messages d'erreur | `ARCHITECTURE.md` § 8 : 9 textes figés, zéro « Une erreur est survenue » | `design:ux-copy`, `copywriting` |
 
 ---
 
-## Phase P2 — Modèle de données & infrastructure DynamoDB
+## Phase P2 : Modèle de données & infrastructure DynamoDB
 
 **Objectif** : la table existe, elle est peuplée, et le modèle est documenté.
 **Sortie de phase** : `npm run db:seed` remplit une table interrogeable.
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
+| **P2.0** | **Outillage** : dépendances (`@aws-sdk/client-dynamodb`, `lib-dynamodb`, `tsx`), harnais **Vitest**, scripts npm `test`, `db:create-table`, `db:seed` | `npm test` répond avant la première ligne de repository : P3 et P4 sont en TDD, le harnais ne peut pas arriver en P11 | `test-driven-development`, `lean-build` |
+| **P2.0b** | **CI GitHub Actions** : `verify` + `test` sur chaque push | Remontée ici depuis P11.8 : 20 min de mise en place qui rattrapent les régressions pendant tout le reste du projet | `lean-build` |
 | P2.1 | Formaliser les 11 patterns d'accès (section 0) avant toute clé | Tableau validé dans `docs/DATA-MODEL.md` | `brainstorming`, `anthropic-skills:backend-patterns` |
-| P2.2 | Concevoir le single-table design : `PK`/`SK` + GSI1 (catégorie/listing) + GSI2 (slug) | Chaque pattern d'accès résolu par une `Query`, jamais par un `Scan` en production | `anthropic-skills:backend-patterns`, `writing-plans` |
+| P2.2 | Concevoir le single-table design : `PK`/`SK` + GSI1 (catégorie/listing) + GSI2 (slug) + attribut `expiresAt` | Chaque pattern d'accès résolu par une `Query`, jamais par un `Scan`. **La stratégie de recherche est tranchée ici** (chargement borné + filtrage applicatif), pas découverte en P4.6 | `anthropic-skills:backend-patterns`, `writing-plans` |
 | P2.3 | Types du domaine (`types/`) + schémas Zod (`schemas/`) : User, Product, Category, CartItem, WishlistItem | Types inférés depuis Zod (`z.infer`), aucune duplication manuelle | `anthropic-skills:backend-patterns` |
 | P2.4 | Fabriques de clés `lib/keys.ts` (`productKey`, `cartItemKey`…) | Aucune string de clé concaténée à la main hors de ce fichier | `composition-patterns`, `safe-refactor` |
-| P2.5 | Compte AWS + utilisateur IAM dédié, politique au moindre privilège (limitée à la table + ses index) | Clés en `.env.local` uniquement ; jamais `AdministratorAccess` | `anthropic-skills:frontend-security-coder`, `/security-review` |
+| ~~P2.5~~ | ~~Compte AWS + utilisateur IAM dédié~~ → **déplacé en P14.1** | Le développement se fait sur DynamoDB Local. Créer le compte AWS maintenant n'apporterait ni coût ni sécurité utiles, seulement des clés à garder 10 phases durant | `anthropic-skills:frontend-security-coder`, `/security-review` |
 | P2.6 | Client DynamoDB singleton `lib/dynamodb.ts` (DocumentClient, `removeUndefinedValues`) | Une seule instanciation, réutilisée à travers les invocations | `anthropic-skills:nodejs-backend-patterns` |
-| P2.7 | `scripts/create-table.ts` — création idempotente table + GSI, `PAY_PER_REQUEST` | Relançable sans erreur ; documenté dans le README | `anthropic-skills:nodejs-backend-patterns`, `migration` |
-| P2.8 | `scripts/seed.ts` — 6 à 8 catégories, 40+ produits réalistes (titre, description, prix, stock, images, tags) | `BatchWriteItem` par lots de 25 ; jeu de données crédible, pas de lorem ipsum | `anthropic-skills:nodejs-backend-patterns`, `copywriting` |
+| P2.7 | `scripts/create-table.ts` : création idempotente table + GSI, `PAY_PER_REQUEST` | Relançable sans erreur ; documenté dans le README | `anthropic-skills:nodejs-backend-patterns`, `migration` |
+| P2.8 | `scripts/seed.ts` : 6 à 8 catégories, 40+ produits réalistes (titre, description, prix, stock, images, tags) | `BatchWriteItem` par lots de 25 ; jeu de données crédible, pas de lorem ipsum | `anthropic-skills:nodejs-backend-patterns`, `copywriting` |
 | P2.9 | Rédiger `docs/DATA-MODEL.md` : entités, clés, GSI, et les 4 opérations CRUD par entité | Exigence explicite du brief (« document how the application reads, creates, updates, deletes ») | `anthropic-skills:technical-writer`, `anthropic-skills:docs-writer` |
-| P2.10 | Option locale : DynamoDB Local via Docker pour développer hors ligne | `DYNAMODB_ENDPOINT` optionnel pris en compte par le client | `lean-build` |
+| P2.10 | **Prérequis** (et non plus « option ») : DynamoDB Local via Docker | P3.9 et P11.4 en dépendent, et c'est le chemin nominal de développement. `docker-compose.yml` versionné, `DYNAMODB_ENDPOINT` pris en compte par le client | `lean-build` |
 
 ---
 
-## Phase P3 — Couche accès données (repositories)
+## Phase P3 : Couche accès données (repositories)
 
 **Objectif** : tout le DynamoDB est enfermé ici. Aucune commande SDK ailleurs dans le code.
 **Sortie de phase** : chaque repository testé en intégration contre DynamoDB Local.
@@ -196,27 +202,27 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P4 — Couche services (logique métier)
+## Phase P4 : Couche services (logique métier)
 
 **Objectif** : le cœur évalué du projet. Pur, testable, sans dépendance à Next.js ni à HTTP.
 **Sortie de phase** : couverture unitaire élevée sur les règles métier.
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P4.1 | `services/cart.service.ts` — ajout : borne de quantité (1..stock), fusion si déjà présent, produit inexistant rejeté | Règles écrites en tests **avant** le code | `test-driven-development`, `brainstorming` |
+| P4.1 | `services/cart.service.ts`, ajout : borne de quantité (1..stock), fusion si déjà présent, produit inexistant rejeté | Règles écrites en tests **avant** le code | `test-driven-development`, `brainstorming` |
 | P4.2 | Calcul du sous-total : arithmétique en centimes (entiers), jamais en flottants | `19.99 × 3` donne exactement `59.97` ; test dédié | `test-driven-development` |
 | P4.3 | Enrichissement du panier : jointure lignes ↔ produits, gestion d'un produit supprimé entre-temps | Ligne orpheline signalée, pas de crash | `test-driven-development`, `systematic-debugging` |
 | P4.4 | Récapitulatif panier : nombre d'articles, sous-total, éventuels frais/remises (transparents) | Une seule fonction de calcul, réutilisée par l'UI et l'API | `composition-patterns` |
-| P4.5 | `services/wishlist.service.ts` — ajout idempotent, bascule, « déplacer vers le panier » | Ajouter deux fois n'est pas une erreur utilisateur | `test-driven-development` |
-| P4.6 | `services/product.service.ts` — recherche (titre + tags), filtres (catégorie, prix min/max, dispo), tri (prix ↑↓, nouveauté) | Filtres combinables ; paramètres invalides → valeurs par défaut sûres | `test-driven-development`, `anthropic-skills:backend-patterns` |
+| P4.5 | `services/wishlist.service.ts` : ajout idempotent, bascule, « déplacer vers le panier » | Ajouter deux fois n'est pas une erreur utilisateur | `test-driven-development` |
+| P4.6 | `services/product.service.ts` : recherche (titre + tags), filtres (catégorie, prix min/max, dispo), tri (prix ↑↓, nouveauté) | Filtres combinables ; paramètres invalides → valeurs par défaut sûres | `test-driven-development`, `anthropic-skills:backend-patterns` |
 | P4.7 | Algorithme de produits associés (même catégorie, tags partagés, exclusion du produit courant, limite 4) | Déterministe et testé | `test-driven-development` |
-| P4.8 | `services/user.service.ts` — session, profil, rattachement panier/wishlist | Un utilisateur anonyme conserve son panier entre les visites | `test-driven-development` |
+| P4.8 | `services/user.service.ts` : session, profil, rattachement panier/wishlist | Un utilisateur anonyme conserve son panier entre les visites | `test-driven-development` |
 | P4.9 | Hiérarchie d'erreurs `lib/errors.ts` : `AppError` → `NotFoundError`, `ValidationError`, `ConflictError`, `DatabaseError` | Code d'erreur + statut HTTP portés par l'erreur, pas par l'appelant | `anthropic-skills:backend-patterns` |
 | P4.10 | Revue de la logique métier avant de brancher l'UI | Aucune règle métier ne fuit vers les composants | `caveman-review`, `/code-review` |
 
 ---
 
-## Phase P5 — Couche API & Server Actions
+## Phase P5 : Couche API & Server Actions
 
 **Objectif** : exposer les services via HTTP et via des Server Actions, de façon cohérente.
 **Sortie de phase** : API testable au `curl`, actions utilisables depuis un formulaire.
@@ -224,7 +230,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
 | P5.1 | Enveloppe de réponse standard `{ success, data, error }` + helper `handleRoute` | Toutes les routes ont la même forme, y compris en erreur | `anthropic-skills:backend-patterns`, `composition-patterns` |
-| P5.2 | `GET /api/products` — pagination, `?q=`, `?category=`, `?minPrice=`, `?maxPrice=`, `?sort=` | Query params validés par Zod ; 400 explicite si invalides | `anthropic-skills:write-api-reference`, `test-driven-development` |
+| P5.2 | `GET /api/products` : pagination, `?q=`, `?category=`, `?minPrice=`, `?maxPrice=`, `?sort=` | Query params validés par Zod ; 400 explicite si invalides | `anthropic-skills:write-api-reference`, `test-driven-development` |
 | P5.3 | `GET /api/products/[id]` | 404 structuré si absent | `test-driven-development` |
 | P5.4 | `GET /api/categories` | Liste triée | `test-driven-development` |
 | P5.5 | `GET/POST/PATCH/DELETE /api/cart` | CRUD complet, corps validés, codes HTTP corrects (200/201/204/400/404/409) | `anthropic-skills:write-api-reference`, `test-driven-development` |
@@ -238,7 +244,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P6 — Design system & composants UI
+## Phase P6 : Design system & composants UI
 
 **Objectif** : une bibliothèque de composants cohérente, avant d'assembler les pages.
 **Sortie de phase** : chaque primitive existe dans tous ses états.
@@ -253,12 +259,12 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P6.6 | `product/ProductCard` : image, titre, prix, badge stock, bouton wishlist | Hauteur stable, pas de décalage de layout (CLS) | `emil-design-eng`, `react-best-practices` |
 | P6.7 | `product/ProductGrid` + `ProductGallery` (détail) | Responsive 1/2/3/4 colonnes | `frontend-design` |
 | P6.8 | `cart/QuantityStepper` : mise à jour optimiste, bornes, état désactivé | Pas de rafale de requêtes au clic répété (debounce) | `react-best-practices`, `composition-patterns` |
-| P6.9 | `feedback/` : `EmptyState`, `ErrorState`, `LoadingSkeleton` — génériques et réutilisés partout | Zéro état vide écrit en dur dans une page | `composition-patterns`, `design:ux-copy` |
+| P6.9 | `feedback/` : `EmptyState`, `ErrorState`, `LoadingSkeleton`, génériques et réutilisés partout | Zéro état vide écrit en dur dans une page | `composition-patterns`, `design:ux-copy` |
 | P6.10 | Revue de design des composants avant assemblage | Rendu non générique, détails invisibles soignés | `design:design-critique`, `taste-skill`, `apple-design` |
 
 ---
 
-## Phase P7 — Storefront (assemblage des pages)
+## Phase P7 : Storefront (assemblage des pages)
 
 **Objectif** : le site navigable de bout en bout avec de vraies données.
 **Sortie de phase** : parcours complet accueil → catégorie → produit → panier sans impasse.
@@ -266,7 +272,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
 | P7.1 | `layout.tsx` racine : métadonnées, polices, providers, `<Toaster>`, header/footer | Polices via `next/font`, aucun FOUT | `anthropic-skills:react-nextjs-development` |
-| P7.2 | Accueil : hero, catégories en vedette, nouveautés, bandeau valeur | Server Component, données réelles issues de DynamoDB | `frontend-design`, `anthropic-skills:react-nextjs-development` |
+| P7.2 | Accueil : hero, catégories en vedette, nouveautés, bandeau valeur | Server Component, données réelles issues de DynamoDB. Remplace la planche de tokens provisoire. **`remotePatterns` restreint dès ce premier usage d'image** (anticipe P15.11 : le laisser à `**` pendant 8 phases est une SSRF ouverte) | `frontend-design`, `anthropic-skills:react-nextjs-development` |
 | P7.3 | Listing produits : grille + barre de filtres + tri + pagination | Filtres portés par l'URL (`searchParams`) → partageable et rechargeable | `anthropic-skills:react-nextjs-development`, `react-best-practices` |
 | P7.4 | Recherche : champ dans le header + page de résultats, debounce, requête reflétée dans l'URL | Résultat vide → `EmptyState` avec suggestions, pas une page blanche | `react-best-practices`, `design:ux-copy` |
 | P7.5 | Page catégorie `[slug]` : bannière, description, produits filtrés | `generateStaticParams` sur les catégories | `anthropic-skills:react-nextjs-development` |
@@ -278,7 +284,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P8 — Panier & Wishlist (expérience complète)
+## Phase P8 : Panier & Wishlist (expérience complète)
 
 **Objectif** : les deux fonctionnalités métier centrales, sans faille.
 **Sortie de phase** : tous les cas limites du brief traités.
@@ -298,7 +304,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P9 — États, résilience, responsive, accessibilité
+## Phase P9 : États, résilience, responsive, accessibilité
 
 **Objectif** : cocher une par une les exigences « Application Experience » du brief.
 **Sortie de phase** : la matrice écran × état de P1.6 est intégralement verte.
@@ -316,7 +322,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P10 — Performance & SEO
+## Phase P10 : Performance & SEO
 
 **Objectif** : un site qui charge vite et qui est indexable.
 **Sortie de phase** : Lighthouse ≥ 90 sur les quatre axes, pages produit riches en métadonnées.
@@ -333,26 +339,26 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P11 — Tests
+## Phase P11 : Tests
 
 **Objectif** : prouver que la logique métier tient. C'est la dernière étape du workflow exigé.
 **Sortie de phase** : `npm test` vert en CI.
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P11.1 | Mise en place Vitest + Testing Library + environnement de test | `npm test` fonctionnel, rapide | `test-driven-development` |
+| ~~P11.1~~ | ~~Mise en place Vitest~~ → **déplacé en P2.0** | Le harnais doit exister avant P3/P4, qui se font en TDD. Il ne reste ici que l'ajout de Testing Library pour P11.6 | `test-driven-development` |
 | P11.2 | Tests unitaires des services (panier, wishlist, produits, sous-total) | Cas nominaux **et** cas limites ; c'est le cœur de la note | `test-driven-development` |
 | P11.3 | Tests unitaires des utilitaires (formatage prix, slug, curseurs de pagination) | 100 % des fonctions pures couvertes | `test-driven-development` |
 | P11.4 | Tests d'intégration repositories contre DynamoDB Local | Table créée/détruite par le harnais de test | `test-driven-development` |
 | P11.5 | Tests des routes API (nominal + erreurs) | Codes HTTP et enveloppes vérifiés | `test-driven-development` |
 | P11.6 | Tests de composants : ProductCard, QuantityStepper, EmptyState | Rendu et interactions | `test-driven-development` |
 | P11.7 | E2E Playwright : parcours achat, recherche+filtre, wishlist→panier | Les 3 parcours critiques passent | `test-driven-development`, `/run` |
-| P11.8 | CI GitHub Actions : lint + typecheck + tests sur chaque push | Badge vert sur le dépôt | `lean-build` |
+| ~~P11.8~~ | ~~CI GitHub Actions~~ → **déplacée en P2.0b** | Il ne reste ici que l'ajout du job Playwright, qui n'existe qu'à partir de P11.7 | `lean-build` |
 | P11.9 | Débogage des échecs résiduels | Cause racine identifiée, pas de test désactivé | `systematic-debugging`, `investigate-first` |
 
 ---
 
-## Phase P12 — Qualité, revue & sécurité
+## Phase P12 : Qualité, revue & sécurité
 
 **Objectif** : le code est prêt à être lu par un évaluateur.
 
@@ -367,7 +373,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P13 — Documentation
+## Phase P13 : Documentation
 
 **Objectif** : le README est un livrable noté, avec 8 sections imposées.
 
@@ -385,13 +391,13 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P14 — Déploiement & soumission
+## Phase P14 : Déploiement & soumission
 
 **Objectif** : livrer les quatre éléments exigés par le dashboard de stage.
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P14.1 | Table DynamoDB de production + utilisateur IAM dédié à la prod | Séparée de la table de dev | `anthropic-skills:frontend-security-coder` |
+| P14.1 | Compte AWS, table DynamoDB de production + utilisateur IAM dédié, politique au moindre privilège (ex-P2.5) | Séparée de la table de dev ; jamais `AdministratorAccess` ; clés en variables Vercel uniquement | `anthropic-skills:frontend-security-coder`, `/security-review` |
 | P14.2 | Déploiement Vercel, variables d'environnement configurées | Build de production vert | `anthropic-skills:vercel-react-best-practices` |
 | P14.3 | Seed de la base de production | Le site live affiche un vrai catalogue | `lean-build` |
 | P14.4 | Vérification du site live : les 3 parcours critiques en conditions réelles | Testé sur mobile physique et desktop | `/run`, `verify-and-stop` |
@@ -406,7 +412,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 > **Statut de ces trois phases** : le brief n'exige ni durcissement sécurité avancé, ni conformité
 > RGPD, ni polish esthétique poussé. Ce sont des **différenciateurs** : ils transforment un projet
 > de stage correct en projet qui ressemble vraiment à de la production. Ils se mènent **après M4**
-> (produit navigable), jamais avant — durcir une application qui ne marche pas encore est du temps
+> (produit navigable), jamais avant, car durcir une application qui ne marche pas encore est du temps
 > perdu.
 >
 > Chaque tâche porte un marqueur de priorité :
@@ -415,13 +421,13 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P15 — Sécurité applicative approfondie
+## Phase P15 : Sécurité applicative approfondie
 
 **Objectif** : défense en profondeur. Chaque couche suppose que la précédente a été contournée.
 **Sortie de phase** : aucune faille dans l'OWASP Top 10 applicable à ce périmètre.
 **Prérequis** : P12.3 (revue de sécurité de base) déjà passée.
 
-### P15.a — Contrôle d'accès & isolation des données
+### P15.a : Contrôle d'accès & isolation des données
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -432,7 +438,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P15.5 | **Identifiant de session non devinable** : `crypto.randomUUID()` ou 32 octets aléatoires, jamais un compteur | Entropie ≥ 128 bits ; aucune séquence prédictible | **[E]** | `anthropic-skills:nodejs-backend-patterns` |
 | P15.6 | **Signature du cookie de session** (HMAC avec secret serveur) pour détecter la falsification | Un cookie modifié est rejeté et purgé, pas interprété | **[R]** | `anthropic-skills:frontend-security-coder` |
 
-### P15.b — Entrées, sorties & injection
+### P15.b : Entrées, sorties & injection
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -443,7 +449,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P15.11 | **SSRF via `next/image`** : `remotePatterns` restreint à des hôtes précis, jamais `hostname: '**'` | Un domaine non listé renvoie 400 | **[E]** | `anthropic-skills:frontend-security-coder` |
 | P15.12 | **Prototype pollution / désérialisation** : pas de `JSON.parse` sur entrée non validée avant passage Zod | Ordre parse → valide → utiliser, jamais parse → utiliser | **[R]** | `anthropic-skills:nodejs-backend-patterns` |
 
-### P15.c — En-têtes, CSP & transport
+### P15.c : En-têtes, CSP & transport
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -453,7 +459,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P15.16 | **CORS** : les routes API ne sont pas ouvertes au monde ; origine restreinte au domaine du site | Un `fetch` cross-origin depuis un autre domaine échoue | **[R]** | `anthropic-skills:backend-patterns` |
 | P15.17 | **CSRF** : vérification d'origine sur les mutations (`Origin`/`Sec-Fetch-Site`) en complément de `SameSite` | Défense en profondeur : le cookie seul ne suffit pas comme preuve d'intention | **[R]** | `anthropic-skills:frontend-security-coder` |
 
-### P15.d — Abus, disponibilité & coût
+### P15.d : Abus, disponibilité & coût
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -463,7 +469,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P15.21 | **Limite de taille de corps de requête** + timeout sur les handlers | Un corps de 10 Mo est rejeté avant traitement | **[R]** | `anthropic-skills:backend-patterns` |
 | P15.22 | **Budget AWS avec alerte** (seuil mensuel, notification e-mail) | Filet de sécurité financier en cas d'abus ou de boucle | **[E]** | `anthropic-skills:nodejs-backend-patterns` |
 
-### P15.e — Secrets, IAM & chaîne d'approvisionnement
+### P15.e : Secrets, IAM & chaîne d'approvisionnement
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -474,11 +480,11 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P15.27 | **CodeQL** (GitHub Advanced Security, gratuit sur dépôt public) | Analyse statique à chaque push | **[D]** | `lean-build` |
 | P15.28 | **Vérification de la surface serveur→client** : aucune variable sensible préfixée `NEXT_PUBLIC_`, aucun secret dans le bundle | `grep` du build client sur les motifs de clés AWS : zéro occurrence | **[E]** | `anthropic-skills:frontend-security-coder`, `verification-before-completion` |
 
-### P15.f — Observabilité & réponse
+### P15.f : Observabilité & réponse
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
-| P15.29 | **Logs structurés** (JSON, niveau, requestId de corrélation) — **sans donnée personnelle** | Un log ne contient jamais d'identifiant de session en clair ni d'e-mail | **[R]** | `anthropic-skills:nodejs-backend-patterns` |
+| P15.29 | **Logs structurés** (JSON, niveau, requestId de corrélation) : **sans donnée personnelle** | Un log ne contient jamais d'identifiant de session en clair ni d'e-mail | **[R]** | `anthropic-skills:nodejs-backend-patterns` |
 | P15.30 | **Masquage des erreurs** : message générique côté client, détail complet côté serveur, corrélé par requestId | Aucune stack trace, nom de table ou requête DynamoDB exposés | **[E]** | `anthropic-skills:backend-patterns`, `systematic-debugging` |
 | P15.31 | **Tests de sécurité automatisés** : suite dédiée (IDOR, validation, en-têtes, rate limit) | Intégrée à la CI, verte | **[D]** | `test-driven-development`, `/security-review` |
 | P15.32 | **`SECURITY.md`** : périmètre, modèle de menace résumé, procédure de signalement | Montre la maturité du raisonnement, pas seulement du code | **[D]** | `anthropic-skills:technical-writer` |
@@ -486,7 +492,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 ---
 
-## Phase P16 — RGPD & privacy by design
+## Phase P16 : RGPD & privacy by design
 
 **Objectif** : traiter la donnée utilisateur comme si le site était réellement exploité en Europe.
 **Sortie de phase** : droits des personnes exerçables dans l'application, documentation conforme.
@@ -499,19 +505,19 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 > **Corollaire favorable** : le cookie de panier est *strictement nécessaire* au service demandé par
 > l'utilisateur. Il est **exempté de consentement** (directive ePrivacy, art. 5.3, et doctrine CNIL).
 > Il faut en **informer**, pas en **demander l'autorisation**. Un bandeau cookies n'est requis que si
-> l'on ajoute des traceurs non essentiels — raison de plus pour les éviter (P16.12).
+> l'on ajoute des traceurs non essentiels : raison de plus pour les éviter (P16.12).
 
-### P16.a — Cartographie & base légale
+### P16.a : Cartographie & base légale
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
-| P16.1 | **Inventaire des données traitées** : quelle donnée, où, pourquoi, combien de temps, qui y accède | Tableau dans `docs/PRIVACY.md` — fondation de tout le reste | **[E]** | `anthropic-skills:technical-writer`, `brainstorming` |
-| P16.2 | **Base légale par traitement** : panier/wishlist = exécution du contrat (art. 6.1.b) ; sécurité/anti-abus = intérêt légitime (art. 6.1.f) ; analytics = consentement (art. 6.1.a) — donc évité | Chaque traitement a une base légale explicite et défendable | **[R]** | `anthropic-skills:technical-writer` |
+| P16.1 | **Inventaire des données traitées** : quelle donnée, où, pourquoi, combien de temps, qui y accède | Tableau dans `docs/PRIVACY.md` : fondation de tout le reste | **[E]** | `anthropic-skills:technical-writer`, `brainstorming` |
+| P16.2 | **Base légale par traitement** : panier/wishlist = exécution du contrat (art. 6.1.b) ; sécurité/anti-abus = intérêt légitime (art. 6.1.f) ; analytics = consentement (art. 6.1.a), donc évité | Chaque traitement a une base légale explicite et défendable | **[R]** | `anthropic-skills:technical-writer` |
 | P16.3 | **Registre des traitements simplifié** (art. 30) | Note d'honnêteté à inclure : une structure < 250 salariés en est largement exemptée ; le produire ici est **démonstratif** | **[D]** | `anthropic-skills:technical-writer` |
 | P16.4 | **Liste des sous-traitants** : Vercel (hébergement), AWS (base), + tout service tiers | Rôles, localisation des données, renvoi vers leurs DPA | **[R]** | `anthropic-skills:docs-writer` |
 | P16.5 | **Résidence des données en UE** : table DynamoDB en `eu-west-3` (Paris), fonctions Vercel forcées sur une région UE (`cdg1`/`fra1`) | Aucun transfert hors UE par défaut ; vérifié dans les consoles | **[R]** | `anthropic-skills:vercel-react-best-practices` |
 
-### P16.b — Minimisation & cycle de vie
+### P16.b : Minimisation & cycle de vie
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -521,50 +527,50 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P16.9 | **Rétention des logs** bornée et documentée (ex. 30 j pour les logs applicatifs, 6 mois pour la sécurité) | Configurée côté Vercel/AWS, pas seulement écrite | **[D]** | `anthropic-skills:nodejs-backend-patterns` |
 | P16.10 | **Pseudonymisation dans les logs** : hachage des identifiants de session avant écriture | Un log exfiltré ne permet pas de rejouer une session | **[D]** | `anthropic-skills:frontend-security-coder` |
 
-### P16.c — Droits des personnes (art. 15 à 20)
+### P16.c : Droits des personnes (art. 15 à 20)
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
-| P16.11 | **Page `/privacy/my-data`** : l'utilisateur voit exactement ce que le site sait de lui | Transparence rendue tangible, pas seulement textuelle — très parlant en démo | **[R]** | `frontend-design`, `design:ux-copy` |
+| P16.11 | **Page `/privacy/my-data`** : l'utilisateur voit exactement ce que le site sait de lui | Transparence rendue tangible, pas seulement textuelle, très parlant en démo | **[R]** | `frontend-design`, `design:ux-copy` |
 | P16.12 | **Droit d'accès + portabilité** (art. 15 & 20) : export JSON de toutes les données de la session | Bouton « Télécharger mes données » → fichier structuré et lisible | **[R]** | `anthropic-skills:backend-patterns`, `test-driven-development` |
 | P16.13 | **Droit à l'effacement** (art. 17) : suppression réelle de tous les items `USER#<id>` + purge du cookie | Confirmation explicite requise ; vérifié en base après coup, pas seulement en UI | **[E]** | `test-driven-development`, `verification-before-completion` |
 | P16.14 | **Droit de rectification** (art. 16) : édition des données de profil | Cohérent avec « user data management » du brief | **[R]** | `test-driven-development` |
 | P16.15 | **Point de contact** pour l'exercice des droits + délai de réponse annoncé (1 mois, art. 12.3) | Présent dans la politique de confidentialité | **[R]** | `anthropic-skills:docs-writer` |
 
-### P16.d — Transparence & interface
+### P16.d : Transparence & interface
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
 | P16.16 | **Politique de confidentialité** rédigée en langage clair (art. 12.1), pas en jargon juridique copié-collé | Lisible en 3 minutes ; chaque affirmation vraie pour *cette* application | **[E]** | `copywriting`, `copy-editing`, `anthropic-skills:technical-writer` |
-| P16.17 | **Bandeau d'information cookies** (information, pas consentement, puisque tout est strictement nécessaire) — discret, non bloquant, mémorisé | Pas de dark pattern, pas de mur, pas de « Accepter » démesuré face à « Refuser » | **[R]** | `popups`, `design:ux-copy`, `web-design-guidelines` |
+| P16.17 | **Bandeau d'information cookies** (information, pas consentement, puisque tout est strictement nécessaire) : discret, non bloquant, mémorisé | Pas de dark pattern, pas de mur, pas de « Accepter » démesuré face à « Refuser » | **[R]** | `popups`, `design:ux-copy`, `web-design-guidelines` |
 | P16.18 | **Si analytics ajouté** : solution sans cookie ni donnée personnelle (Plausible, Umami self-hosted) plutôt que GA4 | Évite le consentement **et** les transferts hors UE ; décision documentée | **[D]** | `analytics` |
 | P16.19 | **Privacy by default** (art. 25.2) : aucune option intrusive activée d'office | Vérifié sur chaque réglage exposé | **[R]** | `design:design-critique` |
-| P16.20 | **Chiffrement** : au repos (DynamoDB — actif par défaut, montée en CMK KMS possible) et en transit (HTTPS strict, HSTS) | État documenté dans `PRIVACY.md` | **[R]** | `anthropic-skills:frontend-security-coder` |
+| P16.20 | **Chiffrement** : au repos (DynamoDB, actif par défaut, montée en CMK KMS possible) et en transit (HTTPS strict, HSTS) | État documenté dans `PRIVACY.md` | **[R]** | `anthropic-skills:frontend-security-coder` |
 | P16.21 | **Procédure de violation de données** : détection, évaluation, notification sous 72 h (art. 33) | Une page dans `SECURITY.md` ; démontre la compréhension du cycle complet | **[D]** | `anthropic-skills:technical-writer` |
-| P16.22 | **Tests des parcours RGPD** : export, effacement, expiration TTL | Suite automatisée — la conformité qui n'est pas testée n'existe pas | **[R]** | `test-driven-development`, `verification-before-completion` |
+| P16.22 | **Tests des parcours RGPD** : export, effacement, expiration TTL | Suite automatisée, car la conformité qui n'est pas testée n'existe pas | **[R]** | `test-driven-development`, `verification-before-completion` |
 
 ---
 
-## Phase P17 — Esthétique & finition
+## Phase P17 : Esthétique & finition
 
 **Objectif** : sortir du rendu « template généré ». C'est ce qui se voit en premier à l'évaluation.
 **Sortie de phase** : une identité visuelle propre, une matière, un mouvement qui a du sens.
-**Prérequis** : P6 à P9 terminées — on polit un produit qui fonctionne, pas une maquette.
+**Prérequis** : P6 à P9 terminées. On polit un produit qui fonctionne, pas une maquette.
 
-### P17.a — Identité & direction artistique affirmée
+### P17.a : Identité & direction artistique affirmée
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
-| P17.1 | **Explorer 5 à 10 directions visuelles isolées**, construites uniquement avec typo, couleur et espace — puis en choisir une et s'y tenir | Le choix est un acte délibéré, pas la première idée retenue par défaut | **[R]** | `bencium-innovative-ux-designer`, `taste-skill` |
+| P17.1 | **Explorer 5 à 10 directions visuelles isolées**, construites uniquement avec typo, couleur et espace : puis en choisir une et s'y tenir | Le choix est un acte délibéré, pas la première idée retenue par défaut | **[R]** | `bencium-innovative-ux-designer`, `taste-skill` |
 | P17.2 | **Identité de marque Tynoc** : nom posé, wordmark, ton, promesse en une phrase | Le site a une personnalité, pas un logo générique | **[R]** | `frontend-design`, `product-marketing`, `canvas-design` |
 | P17.3 | **Couleur en OKLCH** plutôt qu'en hex : luminance perceptuellement uniforme, dérivation programmatique des états hover/active/disabled | Une seule teinte de base génère une échelle cohérente ; contrastes stables en clair comme en sombre | **[R]** | `theme-factory`, `design:design-system` |
 | P17.4 | **Échelle typographique fluide** (`clamp()`), interlignage lié à la taille, `text-wrap: balance` sur les titres, `pretty` sur les paragraphes | Aucun titre orphelin, aucune veuve typographique | **[R]** | `frontend-design`, `emil-design-eng` |
 | P17.5 | **Détail typographique** : `font-optical-sizing`, tracking négatif sur les grandes tailles, chiffres tabulaires sur les prix | Les prix ne « dansent » plus quand la quantité change | **[R]** | `emil-design-eng`, `apple-design` |
-| P17.6 | **Matière** : grain subtil, dégradés maillés, ou bordures translucides — un parti pris de texture, un seul | Le site a une surface, pas juste des rectangles blancs | **[D]** | `frontend-design`, `bencium-innovative-ux-designer` |
+| P17.6 | **Matière** : grain subtil, dégradés maillés, ou bordures translucides, un parti pris de texture et un seul | Le site a une surface, pas juste des rectangles blancs | **[D]** | `frontend-design`, `bencium-innovative-ux-designer` |
 | P17.7 | **Mode sombre repensé**, pas inversé : hiérarchie d'élévation par la luminosité, ombres remplacées par des bordures lumineuses | Le sombre est aussi soigné que le clair | **[R]** | `theme-factory`, `apple-design` |
 | P17.8 | **Système de grille et de rythme vertical** cohérent sur toutes les pages | Les alignements se répondent d'un écran à l'autre | **[R]** | `design:design-system`, `frontend-design` |
 
-### P17.b — Mouvement & interaction
+### P17.b : Mouvement & interaction
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -573,12 +579,12 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P17.11 | **View Transitions API** pour les navigations listing → produit (image partagée qui se déplace) | Amélioration progressive : sans support, navigation classique intacte | **[D]** | `animate`, `seam-craft` |
 | P17.12 | **Chorégraphie de chargement** : les skeletons deviennent le contenu, apparition en cascade légère plutôt qu'en bloc | La transition chargement → contenu ne « claque » pas | **[R]** | `emil-design-eng`, `animate` |
 | P17.13 | **Micro-interactions** : bascule wishlist (cœur qui se remplit), compteur panier qui incrémente, stepper avec accusé de réception tactile | Chaque action a une réponse perçue immédiate | **[R]** | `emil-design-eng`, `find-animation-opportunities` |
-| P17.14 | **Animations pilotées par le scroll** en CSS (`animation-timeline: view()`) pour les entrées de section — sans JS | Zéro coût en JS, dégradation propre | **[D]** | `animate`, `cut-the-curve` |
+| P17.14 | **Animations pilotées par le scroll** en CSS (`animation-timeline: view()`) pour les entrées de section : sans JS | Zéro coût en JS, dégradation propre | **[D]** | `animate`, `cut-the-curve` |
 | P17.15 | **États de survol et de pression physiques** : léger enfoncement, pas juste un changement d'opacité | Les éléments cliquables se sentent cliquables | **[R]** | `apple-design`, `emil-design-eng` |
 | P17.16 | **Interruptibilité** : toute animation en cours accepte d'être annulée ou inversée à mi-parcours | Aucune attente forcée imposée à l'utilisateur | **[R]** | `motion-doctrine`, `review-animations` |
 | P17.17 | **`prefers-reduced-motion`** : parcours complet vérifié avec l'option activée | Les transitions deviennent des fondus, rien ne casse | **[E]** | `design:accessibility-review`, `review-animations` |
 
-### P17.c — Contenu visuel & détails finaux
+### P17.c : Contenu visuel & détails finaux
 
 | ID | Tâche | Livrable / critère d'acceptation | Prio | Skills |
 | --- | --- | --- | --- | --- |
@@ -617,11 +623,11 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
   | Tâche à anticiper | À traiter dès | Pourquoi |
   | --- | --- | --- |
-  | P16.7 — attribut TTL sur les items | **P2.2** (conception des clés) | Ajouter un TTL après coup impose une migration de tous les items existants |
-  | P15.1/P15.2 — dérivation serveur de l'identité | **P3/P4** (repositories & services) | Réécrire les signatures de tous les services après coup est un refactor transverse |
-  | P17.3 — couleur en OKLCH | **P1.4** (design tokens) | Changer de modèle colorimétrique après P6 oblige à repasser sur tous les composants |
+  | P16.7 : attribut TTL sur les items | **P2.2** (conception des clés) | Ajouter un TTL après coup impose une migration de tous les items existants |
+  | P15.1/P15.2 : dérivation serveur de l'identité | **P3/P4** (repositories & services) | Réécrire les signatures de tous les services après coup est un refactor transverse |
+  | P17.3 : couleur en OKLCH | **P1.4** (design tokens) | Changer de modèle colorimétrique après P6 oblige à repasser sur tous les composants |
 
-- **P13 (documentation) se fait après P15/P16/P17**, jamais avant : le README doit décrire le
+- **P13 (documentation) se fait après P15/P16/P17**, jamais avant, car le README doit décrire le
   produit livré, pas le produit prévu. Les sections sécurité et RGPD s'y ajoutent naturellement.
 - Si le temps manque, **couper par priorité, pas par phase** : livrer tous les **[E]** de P15/P16
   vaut mieux que livrer P15 en entier et abandonner P16.
@@ -630,14 +636,14 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 | Jalon | Condition de passage |
 | --- | --- |
-| **M1 — Socle** | Fin P0+P1 : le projet démarre, la DA est figée, la matrice des états est écrite |
-| **M2 — Données** | Fin P2+P3 : la table est peuplée, les repositories sont testés, le TTL est prévu dans le schéma |
-| **M3 — Métier** | Fin P4+P5 : l'API répond au `curl` avec de vraies données, la logique est couverte |
-| **M4 — Produit** | Fin P6+P7+P8 : le site est navigable de bout en bout, panier et wishlist marchent |
-| **M5 — Qualité** | Fin P9+P10+P11+P12 : états complets, Lighthouse ≥ 90, CI verte, revues passées |
-| **M6 — Durcissement** | Fin P15+P16 : note A sur securityheaders, export et effacement fonctionnels, `PRIVACY.md` et `SECURITY.md` publiés |
-| **M7 — Finition** | Fin P17 : direction visuelle assumée, motion cohérente, scores M5 maintenus |
-| **M8 — Livraison** | Fin P13+P14 : déployé, documenté, captures prises, soumis |
+| **M1 : Socle** | ✅ Fin P0+P1 : le projet démarre, la DA est figée, la matrice des états est écrite |
+| **M2 : Données** | Fin P2+P3 : la table est peuplée, les repositories sont testés, le TTL est prévu dans le schéma |
+| **M3 : Métier** | Fin P4+P5 : l'API répond au `curl` avec de vraies données, la logique est couverte |
+| **M4 : Produit** | Fin P6+P7+P8 : le site est navigable de bout en bout, panier et wishlist marchent |
+| **M5 : Qualité** | Fin P9+P10+P11+P12 : états complets, Lighthouse ≥ 90, CI verte, revues passées |
+| **M6 : Durcissement** | Fin P15+P16 : note A sur securityheaders, export et effacement fonctionnels, `PRIVACY.md` et `SECURITY.md` publiés |
+| **M7 : Finition** | Fin P17 : direction visuelle assumée, motion cohérente, scores M5 maintenus |
+| **M8 : Livraison** | Fin P13+P14 : déployé, documenté, captures prises, soumis |
 
 ## Risques identifiés
 
@@ -660,8 +666,19 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P1.1** — cadrer le périmètre et la direction artistique (P0 est terminée).
+**P2.0 → P2.10**, jalon M1 atteint : P0 et P1 sont terminées, la direction artistique est figée
+dans `globals.css` et le cadrage dans [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-Trois décisions à prendre **dès P1/P2**, parce qu'elles sont coûteuses à rattraper : l'attribut TTL
-dans le schéma (P16.7), la dérivation serveur de l'identité utilisateur (P15.1), et le modèle
-colorimétrique OKLCH (P17.3).
+L'ordre de la phase P2 :
+
+1. **P2.0 / P2.0b** : outillage (deps, Vitest, scripts npm) et CI. Rien ne s'écrit avant.
+2. **P2.10**, DynamoDB Local via Docker : le développement n'attend aucun compte AWS.
+3. **P2.1 / P2.2** : patterns d'accès puis clés, jamais l'inverse. C'est ici que se tranchent
+   l'attribut `expiresAt` (P16.7) et la stratégie de recherche.
+4. **P2.3 / P2.4** : schémas Zod et types inférés, puis les fabriques de clés.
+5. **P2.6 / P2.7 / P2.8** : client, création de table, seed de ~45 produits audio.
+6. **P2.9** : `DATA-MODEL.md`, exigence explicite du brief.
+
+Sur les trois décisions coûteuses à rattraper : **OKLCH est fait** (P17.3, anticipé en P1.4).
+Restent l'attribut `expiresAt` et la dérivation serveur de l'identité, tous deux à traiter
+pendant P2/P3 : voir `ARCHITECTURE.md` § 4.

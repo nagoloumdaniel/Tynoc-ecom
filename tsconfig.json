@@ -36,7 +36,7 @@
     "useUnknownInCatchVariables": true,
     // Une fonction typée non-void doit retourner sur tous les chemins.
     "noImplicitReturns": true,
-    // Les exports de type doivent être marqués — cohérent avec verbatimModuleSyntax.
+    // Les exports de type doivent être marqués, cohérent avec verbatimModuleSyntax.
     "forceConsistentCasingInFileNames": true,
     "plugins": [
       {

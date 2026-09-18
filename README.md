@@ -9,18 +9,18 @@ Application e-commerce full-stack construite avec Next.js, TypeScript et AWS Dyn
 
 | Document | Contenu |
 | --- | --- |
-| [docs/BRIEF.md](docs/BRIEF.md) | Le besoin — énoncé traduit, référence contractuelle |
+| [docs/BRIEF.md](docs/BRIEF.md) | Le besoin : énoncé traduit, référence contractuelle |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Plan d'exécution complet : 18 phases, 216 tâches |
 | [AGENTS.md](AGENTS.md) | Conventions de code et règle de dépendance entre couches |
 
 ## Stack technique
 
-- **Next.js 16.3** — App Router, Server Components, Server Actions
+- **Next.js 16.3** : App Router, Server Components, Server Actions
 - **React 19.2**
-- **TypeScript 5** — mode strict renforcé (`noUncheckedIndexedAccess`, `verbatimModuleSyntax`…)
-- **Tailwind CSS v4** — configuration par `@theme`
-- **AWS DynamoDB** — single-table design
-- **Zod 4** — validation runtime et source de vérité des types
+- **TypeScript 5** : mode strict renforcé (`noUncheckedIndexedAccess`, `verbatimModuleSyntax`…)
+- **Tailwind CSS v4** : configuration par `@theme`
+- **AWS DynamoDB** : single-table design
+- **Zod 4** : validation runtime et source de vérité des types
 
 ## Architecture
 
@@ -34,7 +34,7 @@ Le code est organisé en couches à sens unique :
 app/ → server/actions/ + app/api/ → server/services/ → server/repositories/ → lib/dynamodb
 ```
 
-- `server/services/` porte **toute** la logique métier — pure et testable.
+- `server/services/` porte **toute** la logique métier, pure et testable.
 - `server/repositories/` est le **seul** endroit qui connaît DynamoDB.
 - Aucun composant UI n'importe un repository.
 
@@ -60,7 +60,7 @@ Voir [.env.example](.env.example) pour la liste complète et commentée.
 | `APP_AWS_ACCESS_KEY_ID` | Clé d'accès IAM |
 | `APP_AWS_SECRET_ACCESS_KEY` | Clé secrète IAM |
 | `DYNAMODB_TABLE_NAME` | Nom de la table (une par environnement) |
-| `DYNAMODB_ENDPOINT` | Optionnel — endpoint DynamoDB Local |
+| `DYNAMODB_ENDPOINT` | Optionnel : endpoint DynamoDB Local |
 | `SESSION_SECRET` | Secret de signature du cookie de session (≥ 32 caractères) |
 | `NEXT_PUBLIC_SITE_URL` | URL publique du site |
 
@@ -79,14 +79,14 @@ npm run build         # build de production
 npm run typecheck     # vérification des types
 npm run lint          # ESLint
 npm run format        # Prettier
-npm run verify        # typecheck + lint + format — à passer avant tout commit
+npm run verify        # typecheck + lint + format, à passer avant tout commit
 ```
 
 ## Avancement
 
 | Phase | Statut |
 | --- | --- |
-| P0 — Fondations du dépôt | ✅ Terminée |
-| P1 — Cadrage & direction artistique | ⬜ À venir |
-| P2 — Modèle de données & DynamoDB | ⬜ À venir |
+| P0 : Fondations du dépôt | ✅ Terminée |
+| P1 : Cadrage & direction artistique | ✅ Terminée |
+| P2 : Modèle de données & DynamoDB | ⬜ En cours |
 | P3 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
