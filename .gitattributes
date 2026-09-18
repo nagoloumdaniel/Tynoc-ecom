@@ -1,0 +1,16 @@
+# Normalise les fins de ligne : LF dans le dépôt, quelle que soit la plateforme.
+* text=auto eol=lf
+
+# Fichiers binaires — aucune conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Le lockfile est généré : le masquer dans les diffs de PR.
+package-lock.json linguist-generated=true -diff

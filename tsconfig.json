@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+
+    // --- Rigueur de typage (P0.2) ---
+    // Le brief est noté sur « Use TypeScript properly » : on ferme les portes
+    // que `strict` laisse ouvertes.
+    "strict": true,
+    // products[0] est typé T | undefined, pas T : force à traiter le cas vide.
+    "noUncheckedIndexedAccess": true,
+    // Une méthode qui surcharge un parent doit le déclarer.
+    "noImplicitOverride": true,
+    // `import type` explicite : aucun import de type ne survit au bundle.
+    "verbatimModuleSyntax": true,
+    // Interdit les propriétés de classe non initialisées et les `switch` qui filent.
+    "noFallthroughCasesInSwitch": true,
+    // Un import inutilisé ou une variable morte devient une erreur de build.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    // Empêche d'accéder à une propriété d'index par la notation pointée.
+    "noPropertyAccessFromIndexSignature": true,
+    // Les champs de classe suivent la sémantique ECMAScript standard.
+    "useDefineForClassFields": true,
+    // Un `catch (e)` reçoit `unknown`, pas `any`.
+    "useUnknownInCatchVariables": true,
+    // Une fonction typée non-void doit retourner sur tous les chemins.
+    "noImplicitReturns": true,
+    // Les exports de type doivent être marqués — cohérent avec verbatimModuleSyntax.
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
