@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — tout est ignoré SAUF le modèle .env.example (P0.6)
+# env files : tout est ignoré SAUF le modèle .env.example (P0.6)
 .env
 .env.*
 !.env.example

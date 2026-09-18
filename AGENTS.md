@@ -2,15 +2,15 @@
 
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+This version has breaking changes. APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+This block is written and re-added by `next dev`. Verify it at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
 ---
 
-# Tynoc E-Commerce — conventions du projet
+# Tynoc E-Commerce : conventions du projet
 
 Application e-commerce full-stack. Le besoin est décrit dans [docs/BRIEF.md](docs/BRIEF.md),
 le plan d'exécution dans [docs/ROADMAP.md](docs/ROADMAP.md). **Lire la roadmap avant de coder** :
@@ -24,10 +24,10 @@ chaque tâche y porte son critère d'acceptation.
 | UI | React 19.2 |
 | Langage | TypeScript 5 en mode strict renforcé |
 | Styling | Tailwind CSS v4 (config via `@theme` dans `globals.css`) |
-| Base de données | AWS DynamoDB — single-table design |
+| Base de données | AWS DynamoDB : single-table design |
 | Validation | Zod 4 |
 
-## Règle de dépendance entre couches — non négociable
+## Règle de dépendance entre couches : non négociable
 
 ```text
 app/ → server/actions/ + app/api/ → server/services/ → server/repositories/ → lib/dynamodb
@@ -48,7 +48,7 @@ C'est le critère d'architecture le plus visible à l'évaluation. Toute violati
 | `src/components/ui/` | Primitives réutilisables et agnostiques du domaine |
 | `src/components/{product,cart,layout,feedback}/` | Composants métier |
 | `src/server/actions/` | Server Actions (`"use server"`) |
-| `src/server/services/` | **Logique métier** — pure, testable, sans dépendance framework |
+| `src/server/services/` | **Logique métier** : pure, testable, sans dépendance framework |
 | `src/server/repositories/` | Accès DynamoDB, et rien d'autre |
 | `src/lib/` | Client DB, env, erreurs, clés, session, utilitaires |
 | `src/schemas/` | Schémas Zod partagés (source de vérité des types) |
@@ -75,7 +75,7 @@ npm run build         # build de production
 npm run typecheck     # tsc --noEmit
 npm run lint          # eslint
 npm run format        # prettier --write
-npm run verify        # typecheck + lint + format:check — à passer avant tout commit
+npm run verify        # typecheck + lint + format:check, à passer avant tout commit
 ```
 
 ## Git

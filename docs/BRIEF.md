@@ -1,6 +1,6 @@
-# Brief — Application E-Commerce prête pour la production
+# Brief : Application E-Commerce prête pour la production
 
-> Source : énoncé de stage « Production-Ready E-Commerce Application — Software Engineer Intern ».
+> Source : énoncé de stage « Production-Ready E-Commerce Application, Software Engineer Intern ».
 > Traduction française intégrale conservée ici comme référence contractuelle du projet.
 
 ## Présentation du projet
@@ -113,16 +113,16 @@ Exigences → Architecture → Conception BDD → Développement → API & Logiq
 > structurée, avec une gestion des données et une logique métier correctes. Le projet doit
 > ressembler à une vraie application e-commerce, pas à un simple site statique.
 
-## Lecture entre les lignes — ce qui est réellement évalué
+## Lecture entre les lignes : ce qui est réellement évalué
 
-1. **L'architecture** — séparation nette UI / logique métier / couche API / accès base de données /
+1. **L'architecture** : séparation nette UI / logique métier / couche API / accès base de données /
    types / utilitaires.
-2. **La logique métier** — sous-total, quantités, anti-doublons panier et wishlist.
-3. **La conception DynamoDB** — modèle documenté pour 5 entités + les 4 opérations CRUD décrites.
-4. **La robustesse** — erreurs, validation, loading, empty, 404.
-5. **L'hygiène de dev** — TypeScript sérieux, variables d'environnement (aucun secret en dur),
+2. **La logique métier** : sous-total, quantités, anti-doublons panier et wishlist.
+3. **La conception DynamoDB** : modèle documenté pour 5 entités + les 4 opérations CRUD décrites.
+4. **La robustesse** : erreurs, validation, loading, empty, 404.
+5. **L'hygiène de dev** : TypeScript sérieux, variables d'environnement (aucun secret en dur),
    commits propres, documentation.
 
 **Hors périmètre explicite** : paiement / checkout, back-office admin, authentification complète
 (seulement « gestion des données utilisateur »). Les tests ne sont mentionnés qu'une fois, dans le
-workflow final — attendus a minima, non détaillés.
+workflow final, attendus a minima, non détaillés.

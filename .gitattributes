@@ -1,7 +1,7 @@
 # Normalise les fins de ligne : LF dans le dépôt, quelle que soit la plateforme.
 * text=auto eol=lf
 
-# Fichiers binaires — aucune conversion.
+# Fichiers binaires : aucune conversion.
 *.png binary
 *.jpg binary
 *.jpeg binary
