@@ -95,7 +95,8 @@ describe("toProduct", () => {
   });
 
   it("refuse un item auquel il manque un champ obligatoire", () => {
-    const { description: _omitted, ...incomplete } = productItem;
+    const incomplete: Record<string, unknown> = { ...productItem };
+    delete incomplete["description"];
 
     expect(() => toProduct(incomplete)).toThrow(DatabaseError);
   });
