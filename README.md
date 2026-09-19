@@ -13,6 +13,7 @@ Application e-commerce full-stack construite avec Next.js, TypeScript et AWS Dyn
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Plan d'exécution complet : 18 phases, 216 tâches |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Périmètre, direction artistique, états d'écran, parcours, couches |
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | Single-table design, 11 patterns d'accès, opérations CRUD |
+| [docs/API.md](docs/API.md) | Endpoints HTTP, enveloppe de réponse, Server Actions |
 | [AGENTS.md](AGENTS.md) | Conventions de code et règle de dépendance entre couches |
 
 ## Stack technique
@@ -108,5 +109,6 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P2 : Modèle de données & DynamoDB | ✅ Terminée |
 | P3 : Couche repositories | ✅ Terminée |
 | P4 : Couche services | ✅ Terminée |
-| P5 : API & Server Actions | ⬜ En cours |
-| P6 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P5 : API & Server Actions | ✅ Terminée |
+| P6 : Design system & composants | ⬜ En cours |
+| P7 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |

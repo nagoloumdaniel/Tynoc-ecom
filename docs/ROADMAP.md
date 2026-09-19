@@ -229,18 +229,18 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P5.1 | Enveloppe de réponse standard `{ success, data, error }` + helper `handleRoute` | Toutes les routes ont la même forme, y compris en erreur | `anthropic-skills:backend-patterns`, `composition-patterns` |
-| P5.2 | `GET /api/products` : pagination, `?q=`, `?category=`, `?minPrice=`, `?maxPrice=`, `?sort=` | Query params validés par Zod ; 400 explicite si invalides | `anthropic-skills:write-api-reference`, `test-driven-development` |
-| P5.3 | `GET /api/products/[id]` | 404 structuré si absent | `test-driven-development` |
-| P5.4 | `GET /api/categories` | Liste triée | `test-driven-development` |
-| P5.5 | `GET/POST/PATCH/DELETE /api/cart` | CRUD complet, corps validés, codes HTTP corrects (200/201/204/400/404/409) | `anthropic-skills:write-api-reference`, `test-driven-development` |
-| P5.6 | `GET/POST/DELETE /api/wishlist` | 409 sur doublon explicite | `test-driven-development` |
-| P5.7 | Server Actions `actions/cart.ts` et `actions/wishlist.ts` (`"use server"`) | `revalidatePath` ciblé ; retour typé `ActionResult<T>` | `anthropic-skills:react-nextjs-development`, `react-best-practices` |
-| P5.8 | Middleware de session : cookie httpOnly `SameSite=Lax`, création à la première requête | Aucun identifiant utilisateur accepté depuis le client | `anthropic-skills:frontend-security-coder` |
-| P5.9 | Gestion d'erreurs centralisée : mapping `AppError` → statut HTTP, logs serveur, message safe côté client | Aucune stack trace ni nom de table exposés | `anthropic-skills:backend-patterns`, `/security-review` |
-| P5.10 | Garde-fous d'abus : bornes de pagination, limite de taille de corps, limite de quantité | Une requête hostile ne peut pas faire exploser la facture DynamoDB | `anthropic-skills:frontend-security-coder` |
-| P5.11 | Documenter l'API dans `docs/API.md` (endpoints, params, exemples de réponse) | Sert aussi de section README | `anthropic-skills:write-api-reference` |
-| P5.12 | Tests d'intégration des routes (services mockés) | Cas nominal + cas d'erreur pour chaque endpoint | `test-driven-development`, `verification-before-completion` |
+| P5.1 | ✅ Enveloppe de réponse standard `{ success, data, error }` + helper `handleRoute` | Toutes les routes ont la même forme, y compris en erreur | `anthropic-skills:backend-patterns`, `composition-patterns` |
+| P5.2 | ✅ `GET /api/products` : pagination, `?q=`, `?category=`, `?minPrice=`, `?maxPrice=`, `?sort=` | Query params validés par Zod ; 400 explicite si invalides | `anthropic-skills:write-api-reference`, `test-driven-development` |
+| P5.3 | ✅ `GET /api/products/[slug]` | 404 structuré si absent. **Slug et non identifiant** : c'est ce que porte l'URL publique, donc ce qu'un client a sous la main | `test-driven-development` |
+| P5.4 | ✅ `GET /api/categories` | Liste triée | `test-driven-development` |
+| P5.5 | ✅ `GET/POST/PATCH/DELETE /api/cart` | CRUD complet, corps validés, codes HTTP corrects (200/201/204/400/404/409) | `anthropic-skills:write-api-reference`, `test-driven-development` |
+| P5.6 | ✅ `GET/POST/DELETE /api/wishlist` | **Pas de 409 sur doublon** : l'ajout est idempotent, donc 200 avec `added: false`. Un favori posé deux fois n'est pas un échec pour le visiteur | `test-driven-development` |
+| P5.7 | ✅ Server Actions `actions/cart.ts` et `actions/wishlist.ts` (`"use server"`) | `revalidatePath` ciblé ; retour typé `ActionResult<T>` | `anthropic-skills:react-nextjs-development`, `react-best-practices` |
+| P5.8 | ✅ **`proxy.ts`** et non `middleware.ts`, déprécié en Next 16. Cookie httpOnly signé en HMAC, `SameSite=Lax`, posé avant tout rendu | Vérifié au curl : aucun identifiant accepté depuis le client, un cookie falsifié produit une session neuve | `anthropic-skills:frontend-security-coder` |
+| P5.9 | ✅ Gestion d'erreurs centralisée : mapping `AppError` → statut HTTP, logs serveur, message safe côté client | Aucune stack trace ni nom de table exposés | `anthropic-skills:backend-patterns`, `/security-review` |
+| P5.10 | ✅ Garde-fous d'abus : bornes de pagination, limite de taille de corps, limite de quantité | Une requête hostile ne peut pas faire exploser la facture DynamoDB | `anthropic-skills:frontend-security-coder` |
+| P5.11 | ✅ Documenter l'API dans `docs/API.md` (endpoints, params, exemples de réponse) | Sert aussi de section README | `anthropic-skills:write-api-reference` |
+| P5.12 | ✅ Tests d'intégration des routes (21 tests) | Services **réels** plutôt que mockés : seul `next/headers` est remplacé, ce qui rend l'isolation entre sessions réellement vérifiable | `test-driven-development`, `verification-before-completion` |
 
 ---
 
@@ -638,7 +638,7 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 | --- | --- |
 | **M1 : Socle** | ✅ Fin P0+P1 : le projet démarre, la DA est figée, la matrice des états est écrite |
 | **M2 : Données** | ✅ Fin P2+P3 : la table est peuplée, les repositories sont testés, le TTL est prévu dans le schéma |
-| **M3 : Métier** | Fin P4+P5 : l'API répond au `curl` avec de vraies données, la logique est couverte |
+| **M3 : Métier** | ✅ Fin P4+P5 : l'API répond au `curl` avec de vraies données, la logique est couverte |
 | **M4 : Produit** | Fin P6+P7+P8 : le site est navigable de bout en bout, panier et wishlist marchent |
 | **M5 : Qualité** | Fin P9+P10+P11+P12 : états complets, Lighthouse ≥ 90, CI verte, revues passées |
 | **M6 : Durcissement** | Fin P15+P16 : note A sur securityheaders, export et effacement fonctionnels, `PRIVACY.md` et `SECURITY.md` publiés |
@@ -666,20 +666,25 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P5.1 → P5.12, la couche API et les Server Actions.** P4 est terminée : la logique métier est
-écrite, isolée de tout framework, et couverte par 158 tests unitaires qui tournent sans base ni
-conteneur.
+**P6.1 → P6.10, le design system et les composants.** Jalon M3 atteint : l'API répond au curl avec
+de vraies données, les Server Actions sont en place, et la session est posée par `proxy.ts` avant
+tout rendu.
 
-Il reste P5 pour clore le jalon M3.
+Trois ruptures de Next 16 rencontrées en P5 et à garder en tête pour la suite :
 
-1. **P5.1** : l'enveloppe de réponse et le `handleRoute` commun, y compris le mapping
-   `AppError` vers statut HTTP, que la hiérarchie d'erreurs rend mécanique.
-2. **P5.2 à P5.6** : les routes de lecture puis le CRUD panier et wishlist, paramètres validés
-   par Zod.
-3. **P5.7** : les Server Actions, avec `revalidatePath` ciblé et un retour typé.
-4. **P5.8** : le middleware de session, cookie httpOnly signé. C'est le seul endroit où
-   l'identité se dérive, et tout le reste du code la reçoit déjà en paramètre.
-5. **P5.9 à P5.12** : erreurs centralisées, garde-fous d'abus, `docs/API.md`, tests des routes.
+| Rupture | Conséquence |
+| --- | --- |
+| `middleware.ts` renommé `proxy.ts` | La fonction exportée s'appelle `proxy`. Elle tourne sur le runtime Node par défaut depuis la v16, donc `node:crypto` y est disponible |
+| Un Server Component ne peut pas poser de cookie | Toute écriture de cookie passe par `proxy.ts`, une Server Action ou un Route Handler |
+| `RouteContext` est généré, pas fourni | `npm run typecheck` lance `next typegen` d'abord, sans quoi la CI échoue sur un type manquant |
 
-Le travail de P3 et P4 a préparé cette phase : les services ne connaissent pas HTTP, donc les
-routes n'ont qu'à valider, appeler, et traduire une erreur en statut.
+L'ordre de P6 :
+
+1. **P6.1** : trancher primitives maison ou bibliothèque headless, et s'y tenir.
+2. **P6.2 et P6.3** : les primitives, puis les notifications.
+3. **P6.4 à P6.8** : en-tête, navigation mobile, carte produit, grille, sélecteur de quantité.
+4. **P6.9** : les états vides, d'erreur et de chargement, génériques et réutilisés partout.
+5. **P6.10** : revue de design avant d'assembler les pages.
+
+Les tokens de P1 sont la seule source de valeurs : aucune couleur, aucune durée et aucun rayon
+écrits en dur dans un composant, et aucune classe `dark:`.
