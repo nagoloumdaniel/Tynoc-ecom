@@ -251,16 +251,16 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P6.1 | Choisir la stratégie composants (primitives maison vs headless type Radix) | Décision tranchée et justifiée, pas un mélange | `pick-ui-library`, `brainstorming` |
-| P6.2 | Primitives `ui/` : Button, Input, Select, Badge, Card, Skeleton, Dialog, Toast | API par variantes (`variant`/`size`), **jamais** une prolifération de props booléennes | `composition-patterns`, `emil-design-eng` |
-| P6.3 | Notifications via Sonner (ajout panier, erreurs) | Un seul `<Toaster>`, positionnement et thème cohérents | `ask-sonner` |
-| P6.4 | `layout/Header` : logo, nav catégories, recherche, compteurs panier/wishlist | Compteurs réactifs après action serveur | `composition-patterns`, `frontend-design` |
-| P6.5 | `layout/MobileNav` : drawer, verrou de scroll, fermeture au changement de route | Aucun piège de focus, `Escape` fonctionne | `web-design-guidelines`, `design:accessibility-review` |
-| P6.6 | `product/ProductCard` : image, titre, prix, badge stock, bouton wishlist | Hauteur stable, pas de décalage de layout (CLS) | `emil-design-eng`, `react-best-practices` |
-| P6.7 | `product/ProductGrid` + `ProductGallery` (détail) | Responsive 1/2/3/4 colonnes | `frontend-design` |
-| P6.8 | `cart/QuantityStepper` : mise à jour optimiste, bornes, état désactivé | Pas de rafale de requêtes au clic répété (debounce) | `react-best-practices`, `composition-patterns` |
-| P6.9 | `feedback/` : `EmptyState`, `ErrorState`, `LoadingSkeleton`, génériques et réutilisés partout | Zéro état vide écrit en dur dans une page | `composition-patterns`, `design:ux-copy` |
-| P6.10 | Revue de design des composants avant assemblage | Rendu non générique, détails invisibles soignés | `design:design-critique`, `taste-skill`, `apple-design` |
+| P6.1 | ✅ Choisir la stratégie composants | **Primitives maison, zéro bibliothèque de composants.** La difficulté réelle ne portait que sur le dialogue et le select : `<dialog>` + `showModal()` donne piège de focus, Échap et arrière-plan inerte nativement, et le `<select>` du système bat tout menu recréé sur mobile | `pick-ui-library`, `brainstorming` |
+| P6.2 | ✅ Primitives `ui/` : Button, ButtonLink, Input, Select, Field, Badge, Card, Skeleton, Dialog | API par variantes (`variant`/`size`), **jamais** une prolifération de props booléennes | `composition-patterns`, `emil-design-eng` |
+| P6.3 | ✅ Notifications via Sonner (ajout panier, erreurs) | Un seul `<Toaster>`, positionnement et thème cohérents | `ask-sonner` |
+| P6.4 | ✅ `layout/Header` : logo, nav catégories, recherche, compteurs panier/wishlist | Compteurs réactifs après action serveur | `composition-patterns`, `frontend-design` |
+| P6.5 | ✅ `layout/MobileNav` : drawer, verrou de scroll, fermeture au changement de route | Aucun piège de focus, `Escape` fonctionne | `web-design-guidelines`, `design:accessibility-review` |
+| P6.6 | ✅ `product/ProductCard` : image, titre, prix, badge stock, bouton wishlist | Hauteur stable, pas de décalage de layout (CLS) | `emil-design-eng`, `react-best-practices` |
+| P6.7 | ✅ `product/ProductGrid` | Responsive 1/2/3/4 colonnes. **`ProductGallery` reporté en P7.6** : une galerie se conçoit avec la fiche produit qui l'entoure, pas isolée | `frontend-design` |
+| P6.8 | ✅ `cart/QuantityStepper` : mise à jour optimiste, bornes, état désactivé | Pas de rafale de requêtes au clic répété (debounce) | `react-best-practices`, `composition-patterns` |
+| P6.9 | ✅ `feedback/` : `EmptyState`, `ErrorState`, squelettes, génériques et réutilisés partout | Zéro état vide écrit en dur dans une page | `composition-patterns`, `design:ux-copy` |
+| P6.10 | ✅ Revue de design des composants avant assemblage | Planche de revue sur `/`, alimentée par la vraie base. A révélé deux défauts réels : client DynamoDB sans délai d'attente, et 47 produits partageant la même date de création | `design:design-critique`, `taste-skill`, `apple-design` |
 
 ---
 
@@ -666,25 +666,26 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P6.1 → P6.10, le design system et les composants.** Jalon M3 atteint : l'API répond au curl avec
-de vraies données, les Server Actions sont en place, et la session est posée par `proxy.ts` avant
-tout rendu.
+**P7.1 → P7.10, l'assemblage des pages.** P6 est terminée : les primitives existent, elles sont
+montées dans la mise en page, et la planche de revue sur `/` permet de les juger côte à côte dans
+les deux thèmes.
 
-Trois ruptures de Next 16 rencontrées en P5 et à garder en tête pour la suite :
+Deux défauts trouvés en regardant réellement le rendu, que ni le typage ni les tests n'auraient
+signalés :
 
-| Rupture | Conséquence |
+| Défaut | Correction |
 | --- | --- |
-| `middleware.ts` renommé `proxy.ts` | La fonction exportée s'appelle `proxy`. Elle tourne sur le runtime Node par défaut depuis la v16, donc `node:crypto` y est disponible |
-| Un Server Component ne peut pas poser de cookie | Toute écriture de cookie passe par `proxy.ts`, une Server Action ou un Route Handler |
-| `RouteContext` est généré, pas fourni | `npm run typecheck` lance `next typegen` d'abord, sans quoi la CI échoue sur un type manquant |
+| Le client DynamoDB n'avait aucun délai d'attente : base arrêtée, la page **pendait** au lieu d'échouer, donc aucune frontière d'erreur ne s'affichait | `connectionTimeout` 2 s, `requestTimeout` 5 s, 3 tentatives |
+| Les 47 produits partageaient le même `createdAt` : le tri par nouveauté ne triait rien | Date dérivée du slug par hachage, étalée sur 18 mois, toujours déterministe |
 
-L'ordre de P6 :
+Ordre de P7 :
 
-1. **P6.1** : trancher primitives maison ou bibliothèque headless, et s'y tenir.
-2. **P6.2 et P6.3** : les primitives, puis les notifications.
-3. **P6.4 à P6.8** : en-tête, navigation mobile, carte produit, grille, sélecteur de quantité.
-4. **P6.9** : les états vides, d'erreur et de chargement, génériques et réutilisés partout.
-5. **P6.10** : revue de design avant d'assembler les pages.
+1. **P7.1** : le layout racine est déjà en place, il reste les métadonnées et les polices à figer.
+2. **P7.2** : l'accueil réel, qui remplace la planche de revue.
+3. **P7.3 et P7.4** : listing et recherche, état porté par l'URL.
+4. **P7.5 à P7.8** : catégorie, fiche produit avec sa galerie, produits associés, fil d'Ariane.
+5. **P7.9 et P7.10** : 404 soignée et pied de page.
 
-Les tokens de P1 sont la seule source de valeurs : aucune couleur, aucune durée et aucun rayon
-écrits en dur dans un composant, et aucune classe `dark:`.
+À surveiller en P7 : la lecture du cookie dans la mise en page bascule tout le site en rendu
+dynamique. C'est le sujet de P10.1, mais il vaut mieux ne pas empiler d'autres lectures de session
+d'ici là.

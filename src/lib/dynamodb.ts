@@ -38,6 +38,30 @@ function createClient(): DynamoDBClient {
      * Absent en production : le SDK cible alors le service AWS réel.
      */
     ...(isLocalDynamo ? { endpoint: env.DYNAMODB_ENDPOINT } : {}),
+
+    /**
+     * Délais d'attente explicites.
+     *
+     * Sans eux, une base injoignable ne produit pas une erreur : elle produit
+     * une **attente**. La page reste en cours de rendu, le navigateur tourne, et
+     * la frontière d'erreur ne s'affiche jamais puisque rien n'a encore échoué.
+     * Constaté en développement, conteneur arrêté : la requête n'est jamais
+     * revenue.
+     *
+     * Mieux vaut échouer en deux secondes, ce que la frontière d'erreur sait
+     * montrer, que pendre indéfiniment.
+     */
+    requestHandler: {
+      connectionTimeout: 2_000,
+      requestTimeout: 5_000,
+    },
+
+    /**
+     * Trois tentatives au total. DynamoDB renvoie de vraies erreurs
+     * transitoires qu'un seul essai transformerait en panne visible, mais
+     * au-delà de trois l'utilisateur attend plus longtemps qu'il n'accepte.
+     */
+    maxAttempts: 3,
   });
 }
 

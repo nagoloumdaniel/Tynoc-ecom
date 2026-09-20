@@ -13,6 +13,8 @@
  * à personne : autant échouer ici, avec le nom du champ fautif.
  */
 
+import { createHash } from "node:crypto";
+
 import { BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
 
 import { documentClient, TABLE_NAME } from "@/lib/dynamodb";
@@ -36,6 +38,28 @@ function imageUrl(slug: string, index: number): string {
 }
 
 const now = new Date().toISOString();
+
+/** Étalement des dates d'ajout au catalogue, en jours. */
+const CATALOGUE_SPREAD_DAYS = 540;
+
+/**
+ * Date d'entrée d'un produit au catalogue.
+ *
+ * Le premier seed donnait le même horodatage aux quarante-sept produits. Le
+ * tri par nouveauté ne triait donc rien, et la section « Nouveautés » de
+ * l'accueil aurait affiché des accessoires de câblage. Le défaut ne se voit
+ * pas en base, seulement à l'écran.
+ *
+ * L'écart est dérivé du slug par hachage : déterministe, donc le seed reste
+ * idempotent et l'ordre reste le même d'une exécution à l'autre, tout en
+ * mélangeant les catégories comme le ferait un vrai catalogue.
+ */
+function createdAtFor(slug: string): string {
+  const digest = createHash("sha256").update(`created:${slug}`).digest();
+  const daysAgo = digest.readUInt16BE(0) % CATALOGUE_SPREAD_DAYS;
+
+  return new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+}
 
 function buildCategoryItems() {
   return categories.map((seed) => {
@@ -83,7 +107,7 @@ function buildProductItems(seeds: ProductSeed[]) {
         { url: imageUrl(seed.slug, 1), alt: `${seed.brand} ${seed.title}, vue de détail` },
       ],
       specs: seed.specs,
-      createdAt: now,
+      createdAt: createdAtFor(seed.slug),
       updatedAt: now,
     });
 
