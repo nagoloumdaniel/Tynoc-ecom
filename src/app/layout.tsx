@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
+import { Suspense } from "react";
+
+import { FooterWithCategories } from "@/components/layout/footer-categories";
+import { HeaderWithCounters } from "@/components/layout/header-counters";
+import { Toaster } from "@/components/ui/toaster";
+
 import "./globals.css";
 
 /**
@@ -28,7 +34,24 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr" className={`${archivo.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {/* L'en-tête et le pied de page lisent la base et, pour l'en-tête, la
+            session. Les isoler sous Suspense évite que la coquille entière
+            attende ces lectures, et laisse la page s'afficher d'abord. */}
+        <Suspense fallback={<div className="border-line-subtle h-14.25 border-b" />}>
+          <HeaderWithCounters />
+        </Suspense>
+
+        <main id="contenu" className="flex-1">
+          {children}
+        </main>
+
+        <Suspense fallback={null}>
+          <FooterWithCategories />
+        </Suspense>
+
+        <Toaster />
+      </body>
     </html>
   );
 }
