@@ -48,6 +48,23 @@ export default defineConfig({
       },
       {
         test: {
+          /**
+           * Composants (P11.6).
+           *
+           * Environnement `jsdom` et non `node` : un composant a besoin d'un
+           * document pour être rendu et interrogé. Projet séparé plutôt
+           * qu'environnement global, parce que faire tourner les tests de
+           * logique pure dans un DOM simulé les ralentirait sans rien
+           * apporter.
+           */
+          name: "components",
+          environment: "jsdom",
+          include: ["tests/components/**/*.test.tsx"],
+          setupFiles: ["tests/setup/components.ts"],
+        },
+      },
+      {
+        test: {
           name: "integration",
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
