@@ -198,7 +198,7 @@ export function createCartService(deps: {
         throw new ConflictError(
           current >= MAX_QUANTITY_PER_LINE
             ? `La quantité maximale par article est de ${MAX_QUANTITY_PER_LINE}.`
-            : `Il ne reste que ${product.stock} exemplaires, déjà dans votre panier.`,
+            : `Il ne reste que ${product.stock} ${product.stock > 1 ? "exemplaires" : "exemplaire"}, déjà dans votre panier.`,
         );
       }
 
