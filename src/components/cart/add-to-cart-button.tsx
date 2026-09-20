@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -28,7 +29,13 @@ export function AddToCartButton({
   productId: string;
   quantity?: number;
 } & ButtonProps) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  // `router.push` et non `window.location` : ce dernier recharge le document
+  // entier, donc reconstruit la coquille, refait les lectures de l'en-tête et
+  // perd la position de défilement.
+  const goToCart = () => router.push("/cart");
 
   function add() {
     startTransition(async () => {
@@ -41,7 +48,7 @@ export function AddToCartButton({
 
       if (result.data.adjusted) {
         toast.info("Quantité ajustée au stock disponible.", {
-          action: { label: "Voir le panier", onClick: () => (window.location.href = "/cart") },
+          action: { label: "Voir le panier", onClick: goToCart },
         });
         return;
       }
@@ -49,7 +56,7 @@ export function AddToCartButton({
       toast.success("Ajouté au panier", {
         // Le verbe de l'action reste le même de bout en bout : le bouton dit
         // « Ajouter au panier », la confirmation dit « Ajouté au panier ».
-        action: { label: "Voir le panier", onClick: () => (window.location.href = "/cart") },
+        action: { label: "Voir le panier", onClick: goToCart },
       });
     });
   }

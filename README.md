@@ -92,6 +92,7 @@ npm run format        # Prettier
 npm test              # tests unitaires
 npm run test:watch    # tests unitaires en continu
 npm run test:integration  # tests contre DynamoDB Local (conteneur requis)
+npm run check:contrast    # contrastes WCAG des tokens, lus dans globals.css
 npm run verify        # typecheck + lint + format + tests, à passer avant tout commit
 
 npm run db:up         # démarre DynamoDB Local
@@ -113,5 +114,6 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P6 : Design system & composants | ✅ Terminée |
 | P7 : Storefront | ✅ Terminée |
 | P8 : Panier & wishlist | ✅ Terminée |
-| P9 : États, résilience, a11y | ⬜ En cours |
-| P10 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P9 : États, résilience, a11y | ✅ Terminée |
+| P10 : Performance & SEO | ⬜ En cours |
+| P11 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
