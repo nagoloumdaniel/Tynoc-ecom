@@ -329,13 +329,13 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P10.1 | Stratégie de rendu par route (statique / dynamique / revalidation ISR) | Documentée dans `ARCHITECTURE.md`, cohérente avec la fraîcheur des données | `anthropic-skills:vercel-react-best-practices`, `react-best-practices` |
-| P10.2 | Optimisation images : `next/image`, `sizes`, `priority` sur le LCP, formats modernes | LCP < 2,5 s sur mobile simulé | `anthropic-skills:vercel-react-best-practices` |
-| P10.3 | Réduire le JS client : `"use client"` le plus bas possible dans l'arbre | Les pages restent majoritairement Server Components | `react-best-practices`, `composition-patterns` |
-| P10.4 | Métadonnées dynamiques (`generateMetadata`) : titre, description, Open Graph par produit | Partage social correct | `seo-audit`, `anthropic-skills:react-nextjs-development` |
-| P10.5 | Données structurées JSON-LD : `Product`, `BreadcrumbList`, `ItemList` | Validées par le Rich Results Test | `schema` |
-| P10.6 | `sitemap.ts` + `robots.ts` | Générés depuis la base | `seo-audit` |
-| P10.7 | Audit Lighthouse + corrections | Score ≥ 90 perf / a11y / best practices / SEO | `seo-audit`, `verification-before-completion` |
+| P10.1 | ✅ Stratégie de rendu par route | **Cache Components activés.** Toutes les routes passent de `ƒ` à `◐` : coquille prérendue, contenu dépendant de la session en flux. Les 8 pages catégorie sont enfin prérendues individuellement, ce que `generateStaticParams` ne parvenait pas à faire depuis P7 | `anthropic-skills:vercel-react-best-practices`, `react-best-practices` |
+| P10.2 | ✅ Images : `next/image`, `sizes`, `priority` sur le LCP, AVIF puis WebP | Mesure du LCP reportée avec P10.7, faute de navigateur | `anthropic-skills:vercel-react-best-practices` |
+| P10.3 | ✅ Réduire le JS client | 18 composants clients sur environ 45, tous justifiés par un état ou un événement. Les compteurs d'en-tête sont **redevenus des composants serveur** : ils n'avaient pas d'état, seulement une dépendance à la requête | `react-best-practices`, `composition-patterns` |
+| P10.4 | ✅ Métadonnées dynamiques par produit et par catégorie | `metadataBase` ajouté : sans lui les URL Open Graph restaient relatives et aucun réseau social ne les résolvait. Vérifié : `og:image` absolue | `seo-audit`, `anthropic-skills:react-nextjs-development` |
+| P10.5 | ✅ JSON-LD `Product`, `Offer`, `Brand`, `BreadcrumbList`, `ItemList` | Vérifié au rendu : prix `549.00`, disponibilité `schema.org/InStock`. La validation par le Rich Results Test demande une URL publique, donc après P14 | `schema` |
+| P10.6 | ✅ `sitemap.ts` + `robots.ts` | Générés depuis la base : 58 URL. Les trois espaces de session sont exclus, pour éviter qu'un robot crée une session à chaque passage | `seo-audit` |
+| P10.7 | ⬜ **Non fait** : Lighthouse exige un navigateur | À mener avec la passe responsive de P9.5, sur le site déployé en P14 | `seo-audit`, `verification-before-completion` |
 
 ---
 
@@ -666,24 +666,25 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P10.1 → P10.7, performance et SEO.** P9 est terminée, avec une réserve explicite sur P9.5.
+**P11.1 → P11.9, la phase de tests.** P10 est terminée sauf P10.7, qui demande un navigateur.
 
-Deux causes racines trouvées en éprouvant réellement une panne de base, et aucune n'aurait été
-visible autrement :
+Le point signalé depuis P6 est réglé, et le build le montre : **toutes les routes sont passées de
+`ƒ` à `◐`**, coquille statique plus contenu en flux. Ce que l'activation des Cache Components a
+imposé de corriger, chaque fois signalé précisément par la validation de Next :
 
-| Cause | Effet observé | Correction |
-| --- | --- | --- |
-| `DYNAMODB_ENDPOINT` visait `localhost` | `localhost` résout en `::1` **et** `127.0.0.1`. Base arrêtée, le SDK agrège les deux échecs dans un `AggregateError` levé hors promesse, qui casse la gestion d'erreur de Next : 45 s d'attente puis un 200 au corps vide | Adresse IPv4 explicite |
-| L'en-tête et le pied de page lisaient la base **dans la mise en page racine** | `error.tsx` n'enveloppe pas le layout qui le contient : leur échec ne pouvait être rattrapé que par `global-error.tsx`, qui remplace tout le document | Les deux chargeurs rattrapent et se dégradent |
+| Blocage | Correction |
+| --- | --- |
+| L'en-tête lisait catalogue **et** session dans le même composant | Les compteurs sont devenus des composants serveur distincts, chacun derrière sa frontière |
+| Un `try/catch` avalait le signal d'interruption de prérendu | `unstable_rethrow` dans les trois chargeurs de la mise en page |
+| L'état des favoris passait par le serveur, rendant chaque grille dépendante de la session | Une lecture client unique par page, partagée par toutes les cartes |
+| `usePathname` dans le tiroir mobile | Frontière Suspense avec un repli de même gabarit |
+| Panier, favoris et données personnelles lisaient la session au premier niveau | Ossature prérendue, contenu en flux derrière son squelette |
 
-Les deux sont consignées dans `AGENTS.md`, section des pièges de cet environnement.
+Ce qui reste pour P11 :
 
-P10 attaque enfin le point signalé depuis P6 : **toutes les routes sont dynamiques** parce que la
-mise en page lit le cookie de session. C'est P10.1, et cela débloque au passage le
-`generateStaticParams` des catégories, écrit en P7 mais inerte.
-
-1. **P10.1** : stratégie de rendu, via les Cache Components, pour prérendre la coquille et ne
-   différer que les compteurs.
-2. **P10.2 et P10.3** : images et réduction du JS client.
-3. **P10.4 à P10.6** : métadonnées dynamiques, JSON-LD, `sitemap` et `robots`.
-4. **P10.7** : audit Lighthouse, qui demandera un navigateur.
+1. **P11.6** : tests de composants, la seule partie vraiment nouvelle. Testing Library reste à
+   ajouter.
+2. **P11.7** : les trois parcours en Playwright, qui couvriront aussi P9.5 et P10.7 puisqu'ils
+   tournent dans un vrai navigateur.
+3. **P11.8** : le job Playwright dans la CI, reliquat de la tâche déjà déplacée en P2.0b.
+4. P11.1 à P11.5 sont déjà faits, répartis dans les phases précédentes : 268 tests au total.

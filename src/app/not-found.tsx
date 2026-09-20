@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { SearchBar } from "@/components/layout/search-bar";
 import { ButtonLink } from "@/components/ui/button";
-import { productService } from "@/server/services";
+import { getCategories } from "@/server/catalogue";
 
 /**
  * Page 404 globale (P7.9).
@@ -18,7 +18,7 @@ import { productService } from "@/server/services";
 export default async function NotFound() {
   // Une 404 ne doit jamais échouer à son tour. Si la base est injoignable, la
   // page s'affiche sans les raccourcis plutôt que de renvoyer une erreur 500.
-  const categories = await productService.listCategories().catch(() => []);
+  const categories = await getCategories().catch(() => []);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-8 px-4 py-24 text-center md:px-6">

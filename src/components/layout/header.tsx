@@ -4,30 +4,29 @@ import { Suspense } from "react";
 import { cn } from "@/lib/cn";
 import type { Category } from "@/schemas/category";
 
+import { CartCount, WishlistCount } from "./header-counters";
 import { MobileNav } from "./mobile-nav";
 import { SearchBar } from "./search-bar";
 
 /**
  * En-tête du site (P6.4).
  *
- * Server Component. Seuls le tiroir mobile, le champ de recherche et les
- * compteurs sont clients : c'est la règle du `"use client"` le plus bas
- * possible dans l'arbre.
+ * Server Component. Seuls le tiroir mobile et le champ de recherche sont des
+ * composants clients, parce qu'ils ont besoin d'état : c'est la règle du
+ * marqueur client le plus bas possible dans l'arbre.
  *
- * Les compteurs sont rendus par le serveur à chaque navigation. Une Server
- * Action qui modifie le panier provoque un nouveau rendu de la route courante,
- * dont l'en-tête fait partie : le compteur se met donc à jour sans état client
- * ni invalidation globale.
+ * Les compteurs, eux, restent des composants serveur. Ils n'ont pas d'état,
+ * seulement une dépendance à la requête, et ils arrivent en flux.
+ *
+ * Les catégories sont mises en cache, donc l'en-tête entre dans la coquille
+ * statique. Seuls les compteurs dépendent de la session : ils sont rendus
+ * derrière leur propre frontière Suspense et arrivent en flux (P10.1).
+ *
+ * Une Server Action qui modifie le panier provoque un nouveau rendu de la
+ * route courante, dont l'en-tête fait partie : le compteur se met donc à jour
+ * sans état client ni invalidation globale.
  */
-export function Header({
-  categories,
-  cartCount,
-  wishlistCount,
-}: {
-  categories: Category[];
-  cartCount: number;
-  wishlistCount: number;
-}) {
+export function Header({ categories }: { categories: Category[] }) {
   return (
     <header className="bg-surface-1/85 border-line-subtle sticky top-0 z-[var(--z-header)] border-b backdrop-blur">
       {/* Premier élément focalisable de la page : permet d'atteindre le
@@ -40,7 +39,13 @@ export function Header({
       </a>
 
       <div className="mx-auto flex w-full max-w-(--container-page) items-center gap-3 px-4 py-3 md:px-6 lg:gap-6">
-        <MobileNav categories={categories} />
+        {/* `usePathname` n'a de valeur qu'à l'exécution et empêcherait le
+            prérendu de l'en-tête. Le repli reprend exactement le gabarit du
+            bouton, donc aucun décalage de mise en page quand le tiroir
+            arrive. */}
+        <Suspense fallback={<div className="size-10 lg:hidden" />}>
+          <MobileNav categories={categories} />
+        </Suspense>
 
         <Link
           href="/"
@@ -74,7 +79,11 @@ export function Header({
           <CounterLink
             href="/wishlist"
             label="Favoris"
-            count={wishlistCount}
+            count={
+              <Suspense fallback={null}>
+                <WishlistCount />
+              </Suspense>
+            }
             icon={
               <path
                 d="M12 20.5 4.2 12.9a4.8 4.8 0 0 1 0-6.8 4.8 4.8 0 0 1 6.8 0l1 1 1-1a4.8 4.8 0 0 1 6.8 0 4.8 4.8 0 0 1 0 6.8Z"
@@ -85,7 +94,11 @@ export function Header({
           <CounterLink
             href="/cart"
             label="Panier"
-            count={cartCount}
+            count={
+              <Suspense fallback={null}>
+                <CartCount />
+              </Suspense>
+            }
             icon={
               <>
                 <path
@@ -111,14 +124,14 @@ function CounterLink({
 }: {
   href: string;
   label: string;
-  count: number;
+  /** Rendu en flux : le nombre n'est pas connu au moment du prérendu. */
+  count: React.ReactNode;
   icon: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      // Le libellé porte le nombre : une pastille seule n'est pas annoncée.
-      aria-label={count > 0 ? `${label}, ${count} article${count > 1 ? "s" : ""}` : label}
+      aria-label={label}
       className={cn(
         "text-ink-strong hover:bg-surface-2 relative grid size-10 place-items-center rounded-md",
         "transition-colors duration-(--duration-instant)",
@@ -135,14 +148,12 @@ function CounterLink({
         {icon}
       </svg>
 
-      {count > 0 ? (
-        <span
-          aria-hidden
-          className="bg-signal text-ink-strong absolute top-1 right-1 grid min-w-4 place-items-center rounded-full px-1 text-[10px] leading-4 font-semibold tabular-nums"
-        >
-          {count > 99 ? "99+" : count}
-        </span>
-      ) : null}
+      {/* La pastille porte le nombre pour les lecteurs d'écran : le libellé du
+          lien ne peut plus le contenir, puisqu'il est rendu au prérendu alors
+          que le compteur arrive plus tard. */}
+      <span className="bg-signal text-ink-strong absolute top-1 right-1 grid min-w-4 place-items-center rounded-full px-1 text-[10px] leading-4 font-semibold tabular-nums empty:hidden">
+        {count}
+      </span>
     </Link>
   );
 }

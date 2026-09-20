@@ -28,12 +28,9 @@ import { WishlistButton } from "./wishlist-button";
 export function ProductCard({
   product,
   priority = false,
-  inWishlist = false,
 }: {
   product: Product;
   priority?: boolean;
-  /** Lu en base par la page, jamais deviné côté client (P8.7). */
-  inWishlist?: boolean;
 }) {
   const availability = availabilityOf(product.stock);
   const cover = product.images[0];
@@ -64,11 +61,7 @@ export function ProductCard({
             Empilement local à la carte, sans rapport avec les couches
             globales (en-tête, tiroir, dialogue) qui ont leurs tokens. */}
         <div className="absolute top-2 right-2 z-10">
-          <WishlistButton
-            productId={product.id}
-            productTitle={product.title}
-            initialInWishlist={inWishlist}
-          />
+          <WishlistButton productId={product.id} productTitle={product.title} />
         </div>
 
         {availability !== "in-stock" ? (

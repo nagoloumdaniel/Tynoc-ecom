@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { ProductCard } from "@/components/product/product-card";
+import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/json-ld";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { WishlistButton } from "@/components/product/wishlist-button";
 import { AvailabilityBadge, Badge } from "@/components/ui/badge";
@@ -11,8 +12,7 @@ import { Card } from "@/components/ui/surface";
 import { isAppError } from "@/lib/errors";
 import { formatPrice } from "@/lib/cn";
 import { availabilityOf } from "@/schemas/product";
-import { productService } from "@/server/services";
-import { getWishlistProductIds } from "@/server/storefront";
+import { getCategory, getProduct, getRelatedProducts } from "@/server/catalogue";
 
 /**
  * Fiche produit (P7.6, P7.7).
@@ -26,7 +26,7 @@ import { getWishlistProductIds } from "@/server/storefront";
 
 async function loadProduct(slug: string) {
   try {
-    return await productService.getBySlug(slug);
+    return await getProduct(slug);
   } catch (error) {
     if (isAppError(error) && error.code === "NOT_FOUND") notFound();
     throw error;
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const { slug } = await params;
 
   try {
-    const product = await productService.getBySlug(slug);
+    const product = await getProduct(slug);
 
     return {
       title: `${product.brand} ${product.title}`,
@@ -61,10 +61,9 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
   const { slug } = await params;
   const product = await loadProduct(slug);
 
-  const [category, related, wishlistIds] = await Promise.all([
-    productService.getCategoryBySlug(product.categorySlug).catch(() => null),
-    productService.findRelated(product),
-    getWishlistProductIds(),
+  const [category, related] = await Promise.all([
+    getCategory(product.categorySlug).catch(() => null),
+    getRelatedProducts(product),
   ]);
 
   const availability = availabilityOf(product.stock);
@@ -72,6 +71,16 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
   return (
     <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-14 px-4 py-8 md:px-6">
+      <ProductJsonLd product={product} availability={availability} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Accueil", path: "/" },
+          { name: "Catalogue", path: "/products" },
+          ...(category ? [{ name: category.name, path: `/categories/${category.slug}` }] : []),
+          { name: product.title, path: `/products/${product.slug}` },
+        ]}
+      />
+
       <Breadcrumb
         items={[
           { label: "Accueil", href: "/" },
@@ -113,7 +122,6 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             <WishlistButton
               productId={product.id}
               productTitle={product.title}
-              initialInWishlist={wishlistIds.has(product.id)}
               className="size-12"
             />
           </div>
@@ -165,7 +173,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           <ul className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
             {related.map((item) => (
               <li key={item.id}>
-                <ProductCard product={item} inWishlist={wishlistIds.has(item.id)} />
+                <ProductCard product={item} />
               </li>
             ))}
           </ul>

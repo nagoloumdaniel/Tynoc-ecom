@@ -1,7 +1,30 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /**
+   * Cache Components, et donc Partial Prerendering (P10.1).
+   *
+   * Sans lui, la lecture du cookie de session dans la mise en page bascule
+   * **toutes** les routes en rendu dynamique, y compris les pages catégorie
+   * dont les paramètres sont pourtant connus au build. Le
+   * `generateStaticParams` écrit en P7 était de ce fait inerte, ce que la
+   * sortie de build montrait noir sur blanc.
+   *
+   * Avec lui, la coquille est prérendue et seules les parties qui dépendent
+   * réellement de la requête, les compteurs et le panier, restent différées
+   * derrière leur frontière Suspense.
+   */
+  cacheComponents: true,
+
   images: {
+    /**
+     * AVIF avant WebP (P10.2). Next sert le premier format accepté par le
+     * navigateur : AVIF pèse en général 20 à 30 % de moins que WebP à qualité
+     * comparable, et les navigateurs trop anciens retombent d'eux-mêmes sur
+     * le format d'origine.
+     */
+    formats: ["image/avif", "image/webp"],
+
     /**
      * Liste blanche stricte des hôtes d'images distantes (anticipe P15.11).
      *

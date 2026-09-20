@@ -3,8 +3,7 @@ import Link from "next/link";
 
 import { ProductGrid } from "@/components/product/product-grid";
 import { ButtonLink } from "@/components/ui/button";
-import { productService } from "@/server/services";
-import { getWishlistProductIds } from "@/server/storefront";
+import { getCategories, searchCatalogue } from "@/server/catalogue";
 
 /**
  * Accueil (P7.2).
@@ -19,10 +18,9 @@ import { getWishlistProductIds } from "@/server/storefront";
  * concurrents.
  */
 export default async function HomePage() {
-  const [categories, newest, wishlistIds] = await Promise.all([
-    productService.listCategories(),
-    productService.search({ sort: "newest", pageSize: 8 }),
-    getWishlistProductIds(),
+  const [categories, newest] = await Promise.all([
+    getCategories(),
+    searchCatalogue({ sort: "newest", pageSize: 8 }),
   ]);
 
   return (
@@ -98,7 +96,7 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <ProductGrid products={newest.items} wishlistIds={wishlistIds} />
+        <ProductGrid products={newest.items} />
       </section>
 
       <section className="border-line-subtle grid gap-8 border-t pt-10 sm:grid-cols-3">

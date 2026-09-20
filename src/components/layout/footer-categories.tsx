@@ -1,5 +1,7 @@
+import { unstable_rethrow } from "next/navigation";
+
 import type { Category } from "@/schemas/category";
-import { productService } from "@/server/services";
+import { getCategories } from "@/server/catalogue";
 
 import { Footer } from "./footer";
 
@@ -22,8 +24,11 @@ export async function FooterWithCategories() {
   let categories: Category[] = [];
 
   try {
-    categories = await productService.listCategories();
+    categories = await getCategories();
   } catch (error) {
+    // Ne jamais avaler l'interruption de prérendu de Next.
+    unstable_rethrow(error);
+
     console.error(
       JSON.stringify({
         level: "warn",

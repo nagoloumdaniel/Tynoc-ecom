@@ -8,8 +8,7 @@ import { ProductGrid } from "@/components/product/product-grid";
 import { ButtonLink } from "@/components/ui/button";
 import { DEFAULT_PAGE_SIZE } from "@/lib/limits";
 import { storefrontQuerySchema } from "@/schemas/api";
-import { productService } from "@/server/services";
-import { getWishlistProductIds } from "@/server/storefront";
+import { getCategories, searchCatalogue } from "@/server/catalogue";
 
 /**
  * Listing et résultats de recherche (P7.3, P7.4).
@@ -34,8 +33,8 @@ export const metadata: Metadata = {
 export default async function ProductsPage({ searchParams }: PageProps<"/products">) {
   const query = storefrontQuerySchema.parse(await searchParams);
 
-  const [result, categories, wishlistIds] = await Promise.all([
-    productService.search({
+  const [result, categories] = await Promise.all([
+    searchCatalogue({
       ...(query.q === undefined ? {} : { q: query.q }),
       ...(query.category === undefined ? {} : { category: query.category }),
       // Les prix de l'URL sont en euros, ceux du domaine en centimes.
@@ -46,8 +45,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
       page: query.page ?? 1,
       pageSize: DEFAULT_PAGE_SIZE,
     }),
-    productService.listCategories(),
-    getWishlistProductIds(),
+    getCategories(),
   ]);
 
   const searching = Boolean(query.q);
@@ -73,7 +71,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
         <NoResults query={query.q} />
       ) : (
         <>
-          <ProductGrid products={result.items} wishlistIds={wishlistIds} />
+          <ProductGrid products={result.items} />
           <Pagination
             page={result.page}
             pageCount={result.pageCount}

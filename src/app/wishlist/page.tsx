@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { EmptyState } from "@/components/feedback/states";
+import { EmptyState, ProductGridSkeleton } from "@/components/feedback/states";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { WishlistGrid } from "@/components/wishlist/wishlist-grid";
 import { wishlistService } from "@/server/services";
@@ -18,23 +19,28 @@ export const metadata: Metadata = {
  * l'écarte. Contrairement au panier, il n'y a ni montant en jeu ni total à
  * expliquer, donc rien à signaler à l'utilisateur.
  */
-export default async function WishlistPage() {
-  const userId = await getSessionUserId();
-  const entries = await wishlistService.list(userId);
-
+export default function WishlistPage() {
   return (
     <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-6 px-4 py-8 md:px-6">
       <Breadcrumb items={[{ label: "Accueil", href: "/" }, { label: "Favoris" }]} />
 
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold tracking-tight">Favoris</h1>
-        {entries.length > 0 ? (
-          <p className="text-ink-muted text-sm tabular-nums">
-            {entries.length} {entries.length > 1 ? "produits" : "produit"}
-          </p>
-        ) : null}
       </header>
 
+      <Suspense fallback={<ProductGridSkeleton count={3} />}>
+        <WishlistContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function WishlistContent() {
+  const userId = await getSessionUserId();
+  const entries = await wishlistService.list(userId);
+
+  return (
+    <>
       {entries.length === 0 ? (
         <EmptyState
           title="Aucun favori pour l'instant."
@@ -44,6 +50,6 @@ export default async function WishlistPage() {
       ) : (
         <WishlistGrid entries={entries} />
       )}
-    </div>
+    </>
   );
 }
