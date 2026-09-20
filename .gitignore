@@ -49,3 +49,7 @@ credentials
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Rapports Playwright, régénérés à chaque exécution.
+test-results/
+playwright-report/
