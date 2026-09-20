@@ -94,5 +94,14 @@ npm run verify        # typecheck + lint + format:check, à passer avant tout co
 - **Noms de variables AWS sur Vercel** : le runtime Lambda réserve `AWS_REGION`,
   `AWS_ACCESS_KEY_ID` et `AWS_SECRET_ACCESS_KEY`. Le projet utilise le préfixe `APP_AWS_`.
 - **`noUncheckedIndexedAccess` est actif** : `array[0]` est typé `T | undefined`. C'est voulu.
+- **`DYNAMODB_ENDPOINT` doit viser `127.0.0.1`, jamais `localhost`.** `localhost` résout à la fois
+  en `::1` et en `127.0.0.1` : quand la base est arrêtée, le SDK agrège les deux échecs dans un
+  `AggregateError` levé hors de toute promesse, ce qui casse la gestion d'erreur de Next. Symptôme
+  observé : requête qui pend 45 s puis renvoie un 200 au corps vide, sans frontière d'erreur. Avec
+  l'adresse IPv4 explicite, le SDK lève une `Error` simple et la frontière fonctionne.
+- **La mise en page racine ne doit jamais lever.** `error.tsx` enveloppe les pages mais **pas** le
+  layout qui le contient : une exception dans l'en-tête ou le pied de page ne peut être rattrapée
+  que par `global-error.tsx`, qui remplace le document entier. Les chargeurs de l'en-tête et du
+  pied de page rattrapent donc leurs propres erreurs et se dégradent.
 - Le dossier du dépôt contient des majuscules (`Tynoc-ecom`), ce que npm refuse comme nom de
   paquet : le `name` du `package.json` est `tynoc-ecom`.

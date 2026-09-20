@@ -31,7 +31,7 @@ const button = cva(
         /** Encre pleine. L'action principale d'un écran, une seule à la fois. */
         primary: "bg-action text-on-action hover:bg-action-hover",
         /** Bordée. Action secondaire de même importance fonctionnelle. */
-        outline: "border-line text-ink-strong hover:bg-surface-2 border",
+        outline: "border-line-strong text-ink-strong hover:bg-surface-2 border",
         /** Sans fond. Actions de barre d'outils, icônes. */
         ghost: "text-ink-strong hover:bg-surface-2",
         /** Destructif. Réservé à ce qui retire réellement quelque chose. */

@@ -84,9 +84,28 @@ describe("translateDynamoError", () => {
     expect(translated.message).toContain("listing du catalogue");
   });
 
-  it("conserve l'erreur d'origine comme cause", () => {
-    const original = awsError("ThrottlingException");
-    expect(translateDynamoError(original, "listing").cause).toBe(original);
+  it("conserve le type et le message d'origine dans la cause", () => {
+    const original = awsError("ThrottlingException", "throughput exceeded");
+    const cause = translateDynamoError(original, "listing").cause;
+
+    expect(cause).toBeInstanceOf(Error);
+    expect((cause as Error).message).toContain("ThrottlingException");
+    expect((cause as Error).message).toContain("throughput exceeded");
+  });
+
+  it("n'attache jamais l'objet d'erreur du SDK lui-même", () => {
+    // Constaté en conditions réelles : base injoignable, le SDK lève un
+    // `AggregateError`. Attaché tel quel comme cause, il casse la
+    // sérialisation d'erreur du framework, qui lève à son tour un
+    // `TypeError` non rattrapé. La requête pendait alors une minute avant de
+    // rendre un 200 au corps vide, sans frontière d'erreur.
+    const aggregate = new AggregateError([new Error("ECONNREFUSED ::1:8000")], "");
+    aggregate.name = "AggregateError";
+
+    const translated = translateDynamoError(aggregate, "listing");
+
+    expect(translated.cause).not.toBe(aggregate);
+    expect(translated.cause).not.toBeInstanceOf(AggregateError);
   });
 
   it("laisse passer une erreur applicative sans la retraduire", () => {

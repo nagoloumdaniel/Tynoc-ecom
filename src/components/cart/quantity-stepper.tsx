@@ -121,7 +121,7 @@ export function QuantityStepper({
   return (
     <div
       className={cn(
-        "border-line inline-flex h-9 items-center rounded-md border",
+        "border-line-strong inline-flex h-9 items-center rounded-md border",
         pending && "opacity-70",
         className,
       )}

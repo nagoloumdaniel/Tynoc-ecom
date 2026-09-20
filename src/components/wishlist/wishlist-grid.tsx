@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ import { moveToCartAction, removeFromWishlistAction } from "@/server/actions/wis
  * carte avant de savoir serait mentir à l'utilisateur.
  */
 export function WishlistGrid({ entries }: { entries: WishlistEntry[] }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [visible, removeOptimistically] = useOptimistic(entries, (current, productId: string) =>
     current.filter((entry) => entry.product.id !== productId),
@@ -49,7 +51,9 @@ export function WishlistGrid({ entries }: { entries: WishlistEntry[] }) {
       }
 
       toast.success(`${entry.product.title} déplacé vers le panier`, {
-        action: { label: "Voir le panier", onClick: () => (window.location.href = "/cart") },
+        // Navigation client : un rechargement complet perdrait la coquille
+        // déjà rendue et la position de défilement.
+        action: { label: "Voir le panier", onClick: () => router.push("/cart") },
       });
     });
   }

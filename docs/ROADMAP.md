@@ -311,14 +311,14 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P9.1 | `loading.tsx` + `<Suspense>` par route avec skeletons fidèles à la mise en page finale | Aucun spinner plein écran ; pas de saut de layout | `anthropic-skills:react-nextjs-development`, `emil-design-eng` |
-| P9.2 | `error.tsx` par segment + boundary global, avec bouton « Réessayer » | Une panne DynamoDB n'affiche pas une page blanche | `anthropic-skills:react-nextjs-development`, `systematic-debugging` |
-| P9.3 | États vides pour : listing filtré, recherche, panier, wishlist, catégorie sans produit | Chacun propose une action de sortie | `design:ux-copy`, `composition-patterns` |
-| P9.4 | Validation de formulaire côté client **et** serveur (mêmes schémas Zod) | Messages d'erreur au champ, pas seulement en haut de page | `test-driven-development`, `anthropic-skills:frontend-security-coder` |
-| P9.5 | Passe responsive 360 / 768 / 1024 / 1440 px | Aucun scroll horizontal, cibles tactiles ≥ 44 px | `web-design-guidelines`, `frontend-design` |
-| P9.6 | Accessibilité : landmarks, focus visible, navigation clavier complète, alt d'images, contrastes AA | Parcours entier réalisable au clavier seul | `design:accessibility-review`, `web-design-guidelines` |
-| P9.7 | Audit des animations : rien de gratuit, rien qui bloque l'interaction | Motion justifiée ou supprimée | `review-animations`, `improve-animations` |
-| P9.8 | Repérer les endroits manquant de feedback perçu | Chaque action a une réponse < 100 ms | `find-animation-opportunities`, `emil-design-eng` |
+| P9.1 | ✅ `loading.tsx` par route, squelettes fidèles à la mise en page finale | Aucun spinner plein écran ; pas de saut de layout | `anthropic-skills:react-nextjs-development`, `emil-design-eng` |
+| P9.2 | ✅ `error.tsx` + `global-error.tsx`, et surtout **deux causes racines corrigées** | Éprouvé conteneur arrêté. Avant : 45 s d'attente puis un 200 au corps vide. Après : 3 s, coquille dégradée, squelette, puis frontière d'erreur | `anthropic-skills:react-nextjs-development`, `systematic-debugging` |
+| P9.3 | ✅ États vides pour : listing filtré, recherche, panier, wishlist, catégorie sans produit | Chacun propose une action de sortie | `design:ux-copy`, `composition-patterns` |
+| P9.4 | ✅ Validation client **et** serveur, même schéma Zod | Page `/account` créée : le brief demandait la gestion des données utilisateur, qui n'avait aucune interface. Messages rattachés au champ par `aria-describedby` | `test-driven-development`, `anthropic-skills:frontend-security-coder` |
+| P9.5 | ⚠️ Vérifié **structurellement**, pas mesuré en navigateur | Aucune largeur fixe au-delà du plus petit viewport, grilles qui retombent à une colonne, conteneurs `min-w-0` et `truncate`, plancher de 44 px sur pointeur grossier. Une mesure réelle aux quatre largeurs reste à faire | `web-design-guidelines`, `frontend-design` |
+| P9.6 | ✅ Accessibilité | Contrastes **mesurés, pas affirmés** : `npm run check:contrast` lit les tokens dans `globals.css` et vérifie 32 couples. Deux échecs réels trouvés et corrigés | `design:accessibility-review`, `web-design-guidelines` |
+| P9.7 | ✅ Audit des animations | Six animations, toutes de retour d'état ou de continuité. Aucune au défilement, aucune entrée en cascade, aucune décoration en boucle, rien au-dessus de 400 ms | `review-animations`, `improve-animations` |
+| P9.8 | ✅ Repérer les endroits manquant de feedback perçu | États d'attente sur chaque bouton, mises à jour optimistes sur le cœur et le retrait de ligne, quantité affichée immédiatement, et depuis P9.1 un squelette dès la navigation | `find-animation-opportunities`, `emil-design-eng` |
 
 ---
 
@@ -666,19 +666,24 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P9.1 → P9.8, états, résilience, responsive et accessibilité.** Jalon M4 atteint : le site est
-navigable de bout en bout, l'impasse de l'en-tête est fermée, et le parcours accueil vers produit
-vers panier a été suivi en conditions réelles.
+**P10.1 → P10.7, performance et SEO.** P9 est terminée, avec une réserve explicite sur P9.5.
 
-La matrice écran par état de `ARCHITECTURE.md` § 5 est la liste de travail de P9. Ce qui existe
-déjà et ce qui manque :
+Deux causes racines trouvées en éprouvant réellement une panne de base, et aucune n'aurait été
+visible autrement :
 
-| État | Situation |
-| --- | --- |
-| Vide | Fait pour le panier, les favoris, la recherche et une catégorie sans produit |
-| Erreur | **Manquant** : aucun `error.tsx`. Une panne de base rend encore une page blanche |
-| Chargement | **Manquant** : aucun `loading.tsx`, alors que les squelettes existent depuis P6.9 |
-| 404 | Fait |
+| Cause | Effet observé | Correction |
+| --- | --- | --- |
+| `DYNAMODB_ENDPOINT` visait `localhost` | `localhost` résout en `::1` **et** `127.0.0.1`. Base arrêtée, le SDK agrège les deux échecs dans un `AggregateError` levé hors promesse, qui casse la gestion d'erreur de Next : 45 s d'attente puis un 200 au corps vide | Adresse IPv4 explicite |
+| L'en-tête et le pied de page lisaient la base **dans la mise en page racine** | `error.tsx` n'enveloppe pas le layout qui le contient : leur échec ne pouvait être rattrapé que par `global-error.tsx`, qui remplace tout le document | Les deux chargeurs rattrapent et se dégradent |
 
-Priorité dans l'ordre : P9.2 d'abord, parce qu'une page blanche sur panne est le pire des états,
-puis P9.1 qui a déjà ses composants, puis la passe responsive et la passe d'accessibilité.
+Les deux sont consignées dans `AGENTS.md`, section des pièges de cet environnement.
+
+P10 attaque enfin le point signalé depuis P6 : **toutes les routes sont dynamiques** parce que la
+mise en page lit le cookie de session. C'est P10.1, et cela débloque au passage le
+`generateStaticParams` des catégories, écrit en P7 mais inerte.
+
+1. **P10.1** : stratégie de rendu, via les Cache Components, pour prérendre la coquille et ne
+   différer que les compteurs.
+2. **P10.2 et P10.3** : images et réduction du JS client.
+3. **P10.4 à P10.6** : métadonnées dynamiques, JSON-LD, `sitemap` et `robots`.
+4. **P10.7** : audit Lighthouse, qui demandera un navigateur.
