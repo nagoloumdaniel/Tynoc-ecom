@@ -18,9 +18,9 @@ import { cn } from "@/lib/cn";
 const control = cva(
   [
     "w-full rounded-md border bg-surface-1 text-ink-strong",
-    "border-line placeholder:text-ink-faint",
+    "border-line-strong placeholder:text-ink-faint",
     "transition-colors duration-(--duration-instant)",
-    "hover:border-line-strong",
+    "hover:border-ink-muted",
     "disabled:cursor-not-allowed disabled:opacity-60",
   ],
   {

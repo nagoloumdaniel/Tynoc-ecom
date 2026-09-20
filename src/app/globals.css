@@ -37,17 +37,29 @@
   --surface-inverse: light-dark(oklch(0.19 0.008 250), oklch(0.965 0.003 250));
 
   /* --- Encre --------------------------------------------------------------
-     Quatre niveaux, pas plus. `faint` ne porte jamais d'information seule. */
+     Quatre niveaux, pas plus.
+
+     `ink-faint` a été remonté après mesure : il servait de texte informatif
+     (compteurs de catégorie, références, numéro 404) à 2,76:1, sous le seuil
+     AA de 4,5:1. Les états désactivés reposent sur l'opacité, pas sur cette
+     couleur, donc il n'y a aucune raison de la garder sous le seuil. */
   --ink-strong: light-dark(oklch(0.215 0.008 250), oklch(0.975 0.003 250)); /* titres */
   --ink: light-dark(oklch(0.36 0.007 250), oklch(0.875 0.004 250)); /* corps */
   --ink-muted: light-dark(oklch(0.535 0.006 250), oklch(0.7 0.005 250)); /* secondaire */
-  --ink-faint: light-dark(oklch(0.68 0.005 250), oklch(0.545 0.006 250)); /* désactivé */
+  --ink-faint: light-dark(oklch(0.545 0.005 250), oklch(0.6 0.006 250)); /* tertiaire */
   --ink-inverse: light-dark(oklch(0.975 0.003 250), oklch(0.19 0.008 250));
 
-  /* --- Traits ------------------------------------------------------------- */
+  /* --- Traits -------------------------------------------------------------
+     `line-subtle` et `line` séparent, ils ne délimitent rien d'actionnable :
+     le critère 1.4.11 ne s'y applique pas.
+
+     `line-strong` borde en revanche les champs, les boutons contournés et le
+     sélecteur de quantité, c'est-à-dire la limite visible de composants
+     d'interface. Il a donc été remonté à 3,49:1 en clair et 3,43:1 en sombre,
+     au-dessus du seuil de 3:1. */
   --line-subtle: light-dark(oklch(0.905 0.004 250), oklch(0.295 0.008 250));
   --line: light-dark(oklch(0.83 0.005 250), oklch(0.375 0.01 250));
-  --line-strong: light-dark(oklch(0.7 0.006 250), oklch(0.48 0.012 250));
+  --line-strong: light-dark(oklch(0.62 0.006 250), oklch(0.52 0.012 250));
 
   /* --- Action primaire ----------------------------------------------------
      Encre pleine, jamais l'ambre. Le contraste reste maximal dans les deux
