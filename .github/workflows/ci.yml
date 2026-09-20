@@ -12,6 +12,11 @@
 # table, la peuple et rejoue les 11 patterns d'accès. Toujours sans compte AWS :
 # les identifiants ci-dessous sont factices, DynamoDB Local accepte n'importe
 # quelle signature.
+#
+# `e2e` (P11.8) pilote un vrai navigateur contre le **build de production**,
+# avec la même base en conteneur. C'est le seul job qui vérifie le rendu en
+# flux, le prérendu et la navigation au clavier : rien de tout cela n'existe en
+# mode développement ni dans un test unitaire.
 
 name: CI
 
@@ -53,6 +58,9 @@ jobs:
 
       - name: Format
         run: npm run format:check
+
+      - name: Contraste des couleurs
+        run: npm run check:contrast
 
       - name: Tests unitaires
         run: npm test
@@ -110,3 +118,75 @@ jobs:
 
       - name: Tests d'intégration
         run: npm run test:integration
+
+  e2e:
+    name: Parcours de bout en bout
+    runs-on: ubuntu-latest
+    # Le job construit l'application avant de la servir : plus long que les
+    # autres, et c'est le prix d'un test qui porte sur ce qui sera déployé.
+    timeout-minutes: 20
+
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:2.5.2
+        ports:
+          - 8000:8000
+
+    env:
+      APP_AWS_REGION: eu-west-3
+      APP_AWS_ACCESS_KEY_ID: LOCALDEVACCESSKEY
+      APP_AWS_SECRET_ACCESS_KEY: localdevsecretkeylocaldevsecretkey
+      DYNAMODB_TABLE_NAME: tynoc-ecom-e2e
+      DYNAMODB_ENDPOINT: http://127.0.0.1:8000
+      SESSION_SECRET: ci0123456789abcdef0123456789abcdef0123456789
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      # Un seul navigateur : les parcours vérifient le comportement de
+      # l'application, pas les écarts entre moteurs de rendu.
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Attendre DynamoDB Local
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null http://127.0.0.1:8000; then
+              echo "DynamoDB Local est prêt."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "DynamoDB Local n'a pas démarré." >&2
+          exit 1
+
+      # La base doit être peuplée **avant** la construction : le prérendu lit
+      # le catalogue pour figer les pages produit.
+      - name: Créer la table
+        run: npm run db:create-table
+
+      - name: Peupler le catalogue
+        run: npm run db:seed
+
+      # `playwright.config.ts` se charge de construire puis de démarrer le
+      # serveur, sur son port dédié.
+      - name: Parcours de bout en bout
+        run: npm run test:e2e
+
+      # Conservé seulement en cas d'échec : une trace pèse lourd, et elle n'a
+      # d'intérêt que pour reconstituer un parcours qui a cassé.
+      - name: Conserver les traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
