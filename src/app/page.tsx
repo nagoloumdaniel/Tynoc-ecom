@@ -1,165 +1,127 @@
-import { QuantityStepper } from "@/components/cart/quantity-stepper";
-import { EmptyState, ErrorState, ProductGridSkeleton } from "@/components/feedback/states";
+import Image from "next/image";
+import Link from "next/link";
+
 import { ProductGrid } from "@/components/product/product-grid";
-import { AvailabilityBadge, Badge } from "@/components/ui/badge";
-import { Button, ButtonLink } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/field";
-import { Card } from "@/components/ui/surface";
-import { formatPrice } from "@/lib/cn";
+import { ButtonLink } from "@/components/ui/button";
 import { productService } from "@/server/services";
+import { getWishlistProductIds } from "@/server/storefront";
 
 /**
- * Planche de revue du design system (P6.10).
+ * Accueil (P7.2).
  *
- * Provisoire, comme l'était la planche de tokens qu'elle remplace. Elle sert à
- * juger les composants côte à côte, dans les deux thèmes et à toutes les
- * largeurs, **avant** d'assembler les pages. Une primitive dont on découvre le
- * défaut une fois utilisée dans six écrans coûte six corrections.
+ * Server Component, alimenté par la base. Trois blocs, dans l'ordre dans
+ * lequel un visiteur les utilise : ce que vend le magasin, par où entrer, et
+ * ce qui est arrivé récemment.
  *
- * Les produits viennent de la vraie base : une grille alimentée par des titres
- * fictifs de longueur égale cacherait justement les problèmes de hauteur que
- * cette planche doit révéler.
- *
- * Remplacée par l'accueil réel en P7.2.
+ * Le hero ouvre sur du texte plutôt que sur une photographie pleine page. Le
+ * magasin vend de la précision, et une promesse écrite dit plus qu'une image
+ * de casque sur fond dégradé, qui est par ailleurs le hero de tous les sites
+ * concurrents.
  */
-export default async function DesignReview() {
-  const { items } = await productService.search({ pageSize: 8, sort: "newest" });
-  const sample = items[0];
+export default async function HomePage() {
+  const [categories, newest, wishlistIds] = await Promise.all([
+    productService.listCategories(),
+    productService.search({ sort: "newest", pageSize: 8 }),
+    getWishlistProductIds(),
+  ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-16 px-4 py-14 md:px-6">
-      <header className="border-line-subtle border-b pb-8">
-        <h1 className="text-4xl font-semibold tracking-tighter font-stretch-90%">
-          Revue du design system
+    <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-20 px-4 py-12 md:px-6 md:py-16">
+      <section className="flex flex-col gap-6">
+        <h1 className="max-w-[18ch] text-5xl leading-[0.98] font-semibold tracking-tighter font-stretch-90%">
+          Choisis pour leurs mesures autant que pour leur écoute.
         </h1>
-        <p className="text-ink-muted mt-3 max-w-[58ch] text-base">
-          Les primitives réunies sur une page, dans leurs états. Tout provient des tokens : aucune
-          valeur en dur, aucune classe de thème dupliquée.
-        </p>
-      </header>
 
-      <Section title="Boutons" description="Variantes, tailles et états désactivés.">
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="primary">Ajouter au panier</Button>
-          <Button variant="outline">Mettre en favori</Button>
-          <Button variant="ghost">Voir les détails</Button>
-          <Button variant="danger">Vider le panier</Button>
-          <Button disabled>Indisponible</Button>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button size="sm">Petit</Button>
-          <Button size="md">Moyen</Button>
-          <Button size="lg">Grand</Button>
-          <ButtonLink href="/products" variant="outline">
-            Lien stylé en bouton
+        <p className="text-ink-muted max-w-[58ch] text-lg">
+          Casques, enceintes, convertisseurs et microphones. Chaque fiche porte les caractéristiques
+          qui décident vraiment de l&apos;achat, pas des adjectifs.
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href="/products" size="lg">
+            Parcourir le catalogue
+          </ButtonLink>
+          <ButtonLink href="/categories" variant="outline" size="lg">
+            Voir les catégories
           </ButtonLink>
         </div>
-      </Section>
+      </section>
 
-      <Section title="Champs" description="Même hauteur et même anneau de focus, par construction.">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Input placeholder="Rechercher un produit" />
-          <Select defaultValue="newest">
-            <option value="newest">Nouveautés</option>
-            <option value="price-asc">Prix croissant</option>
-            <option value="price-desc">Prix décroissant</option>
-          </Select>
-          <Input placeholder="Champ en erreur" invalid />
+      <section className="flex flex-col gap-6">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-2xl font-semibold tracking-tight">Par famille</h2>
+          <Link
+            href="/categories"
+            className="text-ink-muted hover:text-ink-strong text-sm transition-colors duration-(--duration-instant)"
+          >
+            Tout voir
+          </Link>
         </div>
-      </Section>
 
-      <Section
-        title="Signalétique"
-        description="Trois couleurs, trois sens. Jamais de couleur seule."
-      >
-        <div className="flex flex-wrap items-center gap-3">
-          <AvailabilityBadge availability="in-stock" />
-          <AvailabilityBadge availability="low-stock" stock={3} />
-          <AvailabilityBadge availability="out-of-stock" />
-          <Badge tone="neutral">Ouvert</Badge>
-          <Badge tone="neutral">Studio</Badge>
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {categories.slice(0, 8).map((category) => (
+            <li key={category.slug}>
+              <Link
+                href={`/categories/${category.slug}`}
+                className="group border-line-subtle hover:border-line-strong relative block overflow-hidden rounded-lg border transition-colors duration-(--duration-instant)"
+              >
+                <div className="bg-surface-2 relative aspect-4/3">
+                  <Image
+                    src={category.image.url}
+                    alt=""
+                    fill
+                    sizes="(min-width: 768px) 22vw, 45vw"
+                    className="ease-settle object-cover transition-transform duration-(--duration-slow) group-hover:scale-[1.04]"
+                  />
+                </div>
+
+                <div className="flex items-baseline justify-between gap-2 px-3 py-2.5">
+                  <span className="text-ink-strong text-sm font-medium">{category.name}</span>
+                  <span className="text-ink-faint text-xs tabular-nums">
+                    {category.productCount}
+                  </span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="flex flex-col gap-6">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-2xl font-semibold tracking-tight">Derniers arrivés</h2>
+          <Link
+            href="/products?sort=newest"
+            className="text-ink-muted hover:text-ink-strong text-sm transition-colors duration-(--duration-instant)"
+          >
+            Tout voir
+          </Link>
         </div>
-      </Section>
 
-      <Section
-        title="Sélecteur de quantité"
-        description="Plancher à 1, plafond au stock, envoi différé."
-      >
-        {sample ? (
-          <div className="flex flex-wrap items-center gap-6">
-            <QuantityStepper productId={sample.id} quantity={1} max={sample.stock} />
-            <QuantityStepper productId={sample.id} quantity={10} max={10} />
-            <span className="text-ink-strong text-sm font-semibold">
-              {formatPrice(sample.priceCents)}
-            </span>
+        <ProductGrid products={newest.items} wishlistIds={wishlistIds} />
+      </section>
+
+      <section className="border-line-subtle grid gap-8 border-t pt-10 sm:grid-cols-3">
+        {[
+          {
+            title: "Des chiffres, pas des adjectifs",
+            body: "Impédance, réponse en fréquence, distorsion : les caractéristiques sont sur la fiche, pas dans une notice à télécharger.",
+          },
+          {
+            title: "Stock réel",
+            body: "La disponibilité affichée est celle de l'entrepôt. Un produit en rupture le dit avant l'ajout au panier, pas après.",
+          },
+          {
+            title: "Retour sous 30 jours",
+            body: "Un casque s'évalue sur plusieurs jours d'écoute, pas en trois minutes en magasin.",
+          },
+        ].map((item) => (
+          <div key={item.title} className="flex flex-col gap-2">
+            <h3 className="text-ink-strong text-sm font-medium">{item.title}</h3>
+            <p className="text-ink-muted text-sm">{item.body}</p>
           </div>
-        ) : null}
-      </Section>
-
-      <Section
-        title="Grille produits"
-        description="Hauteur stable quelle que soit la longueur des titres."
-      >
-        <ProductGrid products={items} />
-      </Section>
-
-      <Section
-        title="Chargement"
-        description="Le squelette reprend la géométrie exacte du contenu."
-      >
-        <ProductGridSkeleton count={4} />
-      </Section>
-
-      <Section
-        title="États"
-        description="Chaque état vide propose une sortie, chaque erreur dit quoi faire."
-      >
-        <div className="grid gap-5 lg:grid-cols-2">
-          <EmptyState
-            title="Votre panier est vide."
-            description="Parcourez le catalogue pour y ajouter un premier article."
-            action={{ label: "Parcourir le catalogue", href: "/products" }}
-          />
-          <ErrorState
-            title="Le catalogue est momentanément injoignable."
-            description="La connexion à la base de données a échoué. Réessayez dans quelques instants."
-          />
-        </div>
-      </Section>
-
-      <Section title="Surfaces" description="En clair par l'ombre, en sombre par la luminosité.">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card tone="raised" className="p-5 text-sm">
-            Carte posée
-          </Card>
-          <Card tone="sunken" className="p-5 text-sm">
-            Zone creuse
-          </Card>
-          <Card tone="outline" className="p-5 text-sm">
-            Contour seul
-          </Card>
-        </div>
-      </Section>
+        ))}
+      </section>
     </div>
-  );
-}
-
-function Section({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-ink-strong text-xl font-semibold">{title}</h2>
-        <p className="text-ink-muted mt-1 text-sm">{description}</p>
-      </div>
-      {children}
-    </section>
   );
 }

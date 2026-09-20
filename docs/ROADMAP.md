@@ -271,16 +271,16 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P7.1 | `layout.tsx` racine : métadonnées, polices, providers, `<Toaster>`, header/footer | Polices via `next/font`, aucun FOUT | `anthropic-skills:react-nextjs-development` |
-| P7.2 | Accueil : hero, catégories en vedette, nouveautés, bandeau valeur | Server Component, données réelles issues de DynamoDB. Remplace la planche de tokens provisoire. **`remotePatterns` restreint dès ce premier usage d'image** (anticipe P15.11 : le laisser à `**` pendant 8 phases est une SSRF ouverte) | `frontend-design`, `anthropic-skills:react-nextjs-development` |
-| P7.3 | Listing produits : grille + barre de filtres + tri + pagination | Filtres portés par l'URL (`searchParams`) → partageable et rechargeable | `anthropic-skills:react-nextjs-development`, `react-best-practices` |
-| P7.4 | Recherche : champ dans le header + page de résultats, debounce, requête reflétée dans l'URL | Résultat vide → `EmptyState` avec suggestions, pas une page blanche | `react-best-practices`, `design:ux-copy` |
-| P7.5 | Page catégorie `[slug]` : bannière, description, produits filtrés | `generateStaticParams` sur les catégories | `anthropic-skills:react-nextjs-development` |
-| P7.6 | Page produit `[slug]` : galerie, prix, stock, description, tags, ajout panier, bouton wishlist | Slug inconnu → `notFound()` | `frontend-design`, `anthropic-skills:react-nextjs-development` |
-| P7.7 | Bloc « Produits associés » sur la page produit | Alimenté par `findRelated` (P4.7) | `composition-patterns` |
-| P7.8 | Fil d'Ariane (breadcrumb) contextuel | Accueil › Catégorie › Produit | `web-design-guidelines` |
-| P7.9 | `not-found.tsx` global soigné (recherche + liens catégories) | Exigence explicite du brief | `design:ux-copy`, `frontend-design` |
-| P7.10 | Footer : liens, mentions, réassurance | Cohérent avec la DA | `frontend-design` |
+| P7.1 | ✅ `layout.tsx` racine : métadonnées, polices, providers, `<Toaster>`, header/footer | Polices via `next/font`, aucun FOUT | `anthropic-skills:react-nextjs-development` |
+| P7.2 | ✅ Accueil : hero, catégories en vedette, nouveautés, bandeau valeur | Server Component, données réelles issues de DynamoDB. Remplace la planche de tokens provisoire. **`remotePatterns` restreint dès ce premier usage d'image** (anticipe P15.11 : le laisser à `**` pendant 8 phases est une SSRF ouverte) | `frontend-design`, `anthropic-skills:react-nextjs-development` |
+| P7.3 | ✅ Listing produits : grille + barre de filtres + tri + pagination | État **entièrement dans l'URL**, aucun état React. La barre de filtres est un vrai formulaire `GET` : elle fonctionne sans JavaScript, qui n'ajoute que l'application immédiate | `anthropic-skills:react-nextjs-development`, `react-best-practices` |
+| P7.4 | ✅ Recherche : champ dans le header + page de résultats, requête reflétée dans l'URL | Résultat vide → `EmptyState` avec suggestions, pas une page blanche | `react-best-practices`, `design:ux-copy` |
+| P7.5 | ✅ Page catégorie `[slug]` + index des catégories | `generateStaticParams` écrit, mais **sans effet pour l'instant** : la lecture du cookie dans la mise en page rend toutes les routes dynamiques. Voir P10.1 | `anthropic-skills:react-nextjs-development` |
+| P7.6 | ✅ Page produit `[slug]` + `ProductGallery` (reportée de P6.7) : galerie, prix, stock, description, tags, ajout panier, bouton wishlist | Slug inconnu → `notFound()` | `frontend-design`, `anthropic-skills:react-nextjs-development` |
+| P7.7 | ✅ Bloc « Produits associés » sur la page produit | Alimenté par `findRelated` (P4.7) | `composition-patterns` |
+| P7.8 | ✅ Fil d'Ariane (breadcrumb) contextuel | Accueil › Catégorie › Produit | `web-design-guidelines` |
+| P7.9 | ✅ `not-found.tsx` global soigné (recherche + liens catégories) | Exigence explicite du brief | `design:ux-copy`, `frontend-design` |
+| P7.10 | ✅ Footer : liens, mentions, réassurance (construit en P6 avec la mise en page) | Cohérent avec la DA | `frontend-design` |
 
 ---
 
@@ -666,26 +666,22 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P7.1 → P7.10, l'assemblage des pages.** P6 est terminée : les primitives existent, elles sont
-montées dans la mise en page, et la planche de revue sur `/` permet de les juger côte à côte dans
-les deux thèmes.
+**P8.1 → P8.10, panier et liste de souhaits.** P7 est terminée côté vitrine : accueil, listing,
+recherche, catégories, fiche produit, produits associés, fil d'Ariane et 404 répondent tous et
+affichent de vraies données.
 
-Deux défauts trouvés en regardant réellement le rendu, que ni le typage ni les tests n'auraient
-signalés :
+**La sortie de phase de P7 n'est cependant pas atteinte**, et c'est une contradiction de la
+roadmap elle-même : elle exige un parcours « jusqu'au panier sans impasse », alors que la page
+panier est une tâche de P8. En l'état, les liens « Panier » et « Favoris » de l'en-tête mènent à
+une 404. P8 le règle immédiatement, c'est sa première tâche.
 
-| Défaut | Correction |
-| --- | --- |
-| Le client DynamoDB n'avait aucun délai d'attente : base arrêtée, la page **pendait** au lieu d'échouer, donc aucune frontière d'erreur ne s'affichait | `connectionTimeout` 2 s, `requestTimeout` 5 s, 3 tentatives |
-| Les 47 produits partageaient le même `createdAt` : le tri par nouveauté ne triait rien | Date dérivée du slug par hachage, étalée sur 18 mois, toujours déterministe |
+Deux points à traiter en P8, en plus de la liste de tâches :
 
-Ordre de P7 :
+1. **P8.1 et P8.6 en premier**, pour fermer l'impasse de l'en-tête avant tout le reste.
+2. La bascule « déplacer vers le panier » existe déjà côté service et côté action ; il ne reste que
+   l'écran.
 
-1. **P7.1** : le layout racine est déjà en place, il reste les métadonnées et les polices à figer.
-2. **P7.2** : l'accueil réel, qui remplace la planche de revue.
-3. **P7.3 et P7.4** : listing et recherche, état porté par l'URL.
-4. **P7.5 à P7.8** : catégorie, fiche produit avec sa galerie, produits associés, fil d'Ariane.
-5. **P7.9 et P7.10** : 404 soignée et pied de page.
-
-À surveiller en P7 : la lecture du cookie dans la mise en page bascule tout le site en rendu
-dynamique. C'est le sujet de P10.1, mais il vaut mieux ne pas empiler d'autres lectures de session
-d'ici là.
+Et un point à ne pas oublier en P10.1 : la lecture du cookie de session dans la mise en page rend
+**toutes** les routes dynamiques. Le `generateStaticParams` des catégories est donc écrit mais
+inopérant, et le build le montre noir sur blanc. La correction passe par l'activation des Cache
+Components, qui permettent de prérendre la coquille et de ne différer que les compteurs.

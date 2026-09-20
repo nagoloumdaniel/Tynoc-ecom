@@ -40,6 +40,30 @@ export type ProductQuery = z.infer<typeof productQuerySchema>;
 export const emptyQuerySchema = z.strictObject({});
 
 /**
+ * Paramètres d'URL du **listing public**, distincts de ceux de l'API.
+ *
+ * Une différence assumée : les prix sont ici en **euros**, pas en centimes.
+ * `?minPrice=50` se lit et se partage, `?minPrice=5000` se prête à
+ * l'incompréhension. La conversion se fait à la lecture, et l'argent reste en
+ * centimes partout ailleurs.
+ *
+ * Schéma **non strict**, contrairement à l'API : une page publique reçoit des
+ * `utm_source` et autres paramètres de suivi, et refuser la page pour cette
+ * raison serait absurde. Les paramètres inconnus sont simplement ignorés.
+ */
+export const storefrontQuerySchema = z.object({
+  q: z.string().trim().max(MAX_SEARCH_LENGTH).optional().catch(undefined),
+  category: slugSchema.optional().catch(undefined),
+  minPrice: z.coerce.number().min(0).max(1_000_000).optional().catch(undefined),
+  maxPrice: z.coerce.number().min(0).max(1_000_000).optional().catch(undefined),
+  inStock: z.literal("true").optional().catch(undefined),
+  sort: productSortSchema.optional().catch(undefined),
+  page: z.coerce.number().int().min(1).max(1_000).optional().catch(undefined),
+});
+
+export type StorefrontQuery = z.infer<typeof storefrontQuerySchema>;
+
+/**
  * Suppression d'une ligne de panier, ou vidage complet si le produit est
  * absent. Le produit passe par la query string : un corps sur un `DELETE` est
  * mal pris en charge par une partie des clients et des intermédiaires HTTP.
