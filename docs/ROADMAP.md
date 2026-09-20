@@ -291,16 +291,16 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P8.1 | Page panier : lignes, images, prix unitaire, quantité, sous-total par ligne, récapitulatif | Total recalculé côté serveur, jamais côté client | `anthropic-skills:react-nextjs-development` |
-| P8.2 | Modification de quantité (stepper + saisie directe), plancher 1, plafond stock | Mise à jour optimiste + rollback en cas d'échec serveur | `react-best-practices`, `composition-patterns` |
-| P8.3 | Suppression de ligne + annulation possible (toast « Annuler ») | Pas de suppression irréversible sans filet | `ask-sonner`, `design:ux-copy` |
-| P8.4 | Panier vide : `EmptyState` avec appel à l'action vers le listing | Exigence explicite du brief | `design:ux-copy` |
-| P8.5 | Ajout depuis la carte produit **et** depuis la page produit | Anti-doublon vérifié : le même produit incrémente sa quantité | `test-driven-development` |
-| P8.6 | Page wishlist : grille, retrait, « déplacer vers le panier » | Déplacement = ajout panier + retrait wishlist, atomique côté service | `test-driven-development` |
-| P8.7 | Bouton wishlist en bascule (icône remplie/vide) sur tous les points d'entrée | État réel lu depuis la base, pas seulement local | `react-best-practices` |
-| P8.8 | Persistance entre sessions via le cookie de session | Fermer/rouvrir le navigateur conserve panier et wishlist | `test-driven-development`, `verification-before-completion` |
-| P8.9 | Cas limites : produit en rupture, produit supprimé, quantité > stock, action concurrente | Chaque cas affiche un message clair, aucun crash | `systematic-debugging`, `investigate-first` |
-| P8.10 | Animations d'ajout (compteur header, entrée/sortie de ligne) | Discrètes, interruptibles, `prefers-reduced-motion` respecté | `animate`, `motion-design` |
+| P8.1 | ✅ Page panier : lignes, images, prix unitaire, quantité, sous-total par ligne, récapitulatif | Total recalculé côté serveur, jamais côté client | `anthropic-skills:react-nextjs-development` |
+| P8.2 | ✅ Modification de quantité (stepper + saisie directe), plancher 1, plafond stock | Mise à jour optimiste + rollback en cas d'échec serveur | `react-best-practices`, `composition-patterns` |
+| P8.3 | ✅ Suppression de ligne + annulation possible (toast « Annuler ») | Pas de suppression irréversible sans filet | `ask-sonner`, `design:ux-copy` |
+| P8.4 | ✅ Panier vide : `EmptyState` avec appel à l'action vers le listing | Exigence explicite du brief | `design:ux-copy` |
+| P8.5 | ✅ Ajout depuis la carte produit **et** depuis la page produit | Anti-doublon vérifié : le même produit incrémente sa quantité | `test-driven-development` |
+| P8.6 | ✅ Page wishlist : grille, retrait, « déplacer vers le panier » | Déplacement = ajout panier + retrait wishlist, atomique côté service | `test-driven-development` |
+| P8.7 | ✅ Bouton wishlist en bascule sur tous les points d'entrée | Vérifié en conditions réelles : la fiche produit renvoie `aria-pressed="true"` après un ajout, l'état vient bien de la base | `react-best-practices` |
+| P8.8 | ✅ Persistance entre sessions via le cookie de session | Fermer/rouvrir le navigateur conserve panier et wishlist | `test-driven-development`, `verification-before-completion` |
+| P8.9 | ✅ Cas limites | Les quatre éprouvés en conditions réelles, produit réellement supprimé de la base comprise : bannière de ligne orpheline, sous-total à 0, aucun crash, et un bouton pour nettoyer | `systematic-debugging`, `investigate-first` |
+| P8.10 | ⚠️ Animations d'entrée de ligne uniquement | `@starting-style` en CSS pur, sans état client. **Le compteur de l'en-tête n'est pas animé** : il est rendu par le serveur, et l'animer demanderait d'y introduire de l'état client, ce que P10.3 cherche justement à éviter. Reporté à la passe de motion de P17 | `animate`, `motion-design` |
 
 ---
 
@@ -639,7 +639,7 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 | **M1 : Socle** | ✅ Fin P0+P1 : le projet démarre, la DA est figée, la matrice des états est écrite |
 | **M2 : Données** | ✅ Fin P2+P3 : la table est peuplée, les repositories sont testés, le TTL est prévu dans le schéma |
 | **M3 : Métier** | ✅ Fin P4+P5 : l'API répond au `curl` avec de vraies données, la logique est couverte |
-| **M4 : Produit** | Fin P6+P7+P8 : le site est navigable de bout en bout, panier et wishlist marchent |
+| **M4 : Produit** | ✅ Fin P6+P7+P8 : le site est navigable de bout en bout, panier et wishlist marchent |
 | **M5 : Qualité** | Fin P9+P10+P11+P12 : états complets, Lighthouse ≥ 90, CI verte, revues passées |
 | **M6 : Durcissement** | Fin P15+P16 : note A sur securityheaders, export et effacement fonctionnels, `PRIVACY.md` et `SECURITY.md` publiés |
 | **M7 : Finition** | Fin P17 : direction visuelle assumée, motion cohérente, scores M5 maintenus |
@@ -666,22 +666,19 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P8.1 → P8.10, panier et liste de souhaits.** P7 est terminée côté vitrine : accueil, listing,
-recherche, catégories, fiche produit, produits associés, fil d'Ariane et 404 répondent tous et
-affichent de vraies données.
+**P9.1 → P9.8, états, résilience, responsive et accessibilité.** Jalon M4 atteint : le site est
+navigable de bout en bout, l'impasse de l'en-tête est fermée, et le parcours accueil vers produit
+vers panier a été suivi en conditions réelles.
 
-**La sortie de phase de P7 n'est cependant pas atteinte**, et c'est une contradiction de la
-roadmap elle-même : elle exige un parcours « jusqu'au panier sans impasse », alors que la page
-panier est une tâche de P8. En l'état, les liens « Panier » et « Favoris » de l'en-tête mènent à
-une 404. P8 le règle immédiatement, c'est sa première tâche.
+La matrice écran par état de `ARCHITECTURE.md` § 5 est la liste de travail de P9. Ce qui existe
+déjà et ce qui manque :
 
-Deux points à traiter en P8, en plus de la liste de tâches :
+| État | Situation |
+| --- | --- |
+| Vide | Fait pour le panier, les favoris, la recherche et une catégorie sans produit |
+| Erreur | **Manquant** : aucun `error.tsx`. Une panne de base rend encore une page blanche |
+| Chargement | **Manquant** : aucun `loading.tsx`, alors que les squelettes existent depuis P6.9 |
+| 404 | Fait |
 
-1. **P8.1 et P8.6 en premier**, pour fermer l'impasse de l'en-tête avant tout le reste.
-2. La bascule « déplacer vers le panier » existe déjà côté service et côté action ; il ne reste que
-   l'écran.
-
-Et un point à ne pas oublier en P10.1 : la lecture du cookie de session dans la mise en page rend
-**toutes** les routes dynamiques. Le `generateStaticParams` des catégories est donc écrit mais
-inopérant, et le build le montre noir sur blanc. La correction passe par l'activation des Cache
-Components, qui permettent de prérendre la coquille et de ne différer que les compteurs.
+Priorité dans l'ordre : P9.2 d'abord, parce qu'une page blanche sur panne est le pire des états,
+puis P9.1 qui a déjà ses composants, puis la passe responsive et la passe d'accessibilité.

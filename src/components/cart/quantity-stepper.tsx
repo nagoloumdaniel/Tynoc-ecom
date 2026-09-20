@@ -41,6 +41,8 @@ export function QuantityStepper({
   const ceiling = Math.max(1, Math.min(max, MAX_QUANTITY_PER_LINE));
   const [displayed, setDisplayed] = useState(quantity);
   const [confirmed, setConfirmed] = useState(quantity);
+  /** Saisie en cours. `null` signifie « affiche la valeur courante ». */
+  const [draft, setDraft] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -92,7 +94,27 @@ export function QuantityStepper({
   }
 
   function step(delta: number) {
+    setDraft(null);
     const next = Math.min(Math.max(displayed + delta, 1), ceiling);
+    if (next !== displayed) schedule(next);
+  }
+
+  /**
+   * Valide la saisie manuelle.
+   *
+   * Un champ vidé puis quitté revient à la valeur courante plutôt que de
+   * déclencher un retrait : supprimer une ligne est une autre action, avec sa
+   * propre confirmation et sa propre annulation.
+   */
+  function commitDraft() {
+    const raw = draft;
+    setDraft(null);
+    if (raw === null) return;
+
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed)) return;
+
+    const next = Math.min(Math.max(parsed, 1), ceiling);
     if (next !== displayed) schedule(next);
   }
 
@@ -114,15 +136,30 @@ export function QuantityStepper({
         <MinusIcon />
       </StepButton>
 
-      <output
-        // `aria-live` : la nouvelle quantité est annoncée sans déplacer le
-        // focus, qui reste sur le bouton pour permettre un second clic.
-        aria-live="polite"
-        aria-label={`Quantité : ${displayed}`}
-        className="text-ink-strong w-9 text-center text-sm font-medium tabular-nums"
-      >
-        {displayed}
-      </output>
+      {/* Saisie directe en plus des boutons (P8.2). Passer de 1 à 9 au clavier
+          demande huit clics autrement, et sur mobile la frappe est plus rapide
+          que la visée d'une cible de 36 pixels. */}
+      <input
+        type="text"
+        inputMode="numeric"
+        // `aria-live` sur le conteneur annoncerait chaque frappe. C'est le
+        // libellé du champ qui porte la valeur, et il suffit.
+        aria-label="Quantité"
+        value={draft ?? String(displayed)}
+        onChange={(event) => setDraft(event.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
+        // Validation à la sortie du champ et non à la frappe : taper « 12 »
+        // passe par « 1 », et envoyer cet état intermédiaire produirait deux
+        // écritures dont la première est fausse.
+        onBlur={() => commitDraft()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
+          if (event.key === "Escape") setDraft(null);
+        }}
+        className="text-ink-strong w-10 bg-transparent text-center text-sm font-medium tabular-nums focus:outline-none"
+      />
 
       <StepButton
         label="Augmenter la quantité"
