@@ -110,5 +110,6 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P3 : Couche repositories | ✅ Terminée |
 | P4 : Couche services | ✅ Terminée |
 | P5 : API & Server Actions | ✅ Terminée |
-| P6 : Design system & composants | ⬜ En cours |
-| P7 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P6 : Design system & composants | ✅ Terminée |
+| P7 : Storefront | ⬜ En cours |
+| P8 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
