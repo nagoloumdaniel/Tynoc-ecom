@@ -300,7 +300,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P8.7 | ✅ Bouton wishlist en bascule sur tous les points d'entrée | Vérifié en conditions réelles : la fiche produit renvoie `aria-pressed="true"` après un ajout, l'état vient bien de la base | `react-best-practices` |
 | P8.8 | ✅ Persistance entre sessions via le cookie de session | Fermer/rouvrir le navigateur conserve panier et wishlist | `test-driven-development`, `verification-before-completion` |
 | P8.9 | ✅ Cas limites | Les quatre éprouvés en conditions réelles, produit réellement supprimé de la base comprise : bannière de ligne orpheline, sous-total à 0, aucun crash, et un bouton pour nettoyer | `systematic-debugging`, `investigate-first` |
-| P8.10 | ⚠️ Animations d'entrée de ligne uniquement | `@starting-style` en CSS pur, sans état client. **Le compteur de l'en-tête n'est pas animé** : il est rendu par le serveur, et l'animer demanderait d'y introduire de l'état client, ce que P10.3 cherche justement à éviter. Reporté à la passe de motion de P17 | `animate`, `motion-design` |
+| P8.10 | ✅ Entrée de ligne **et** apparition du compteur d'en-tête | Tout en `@starting-style`, sans une ligne d'état client. Le compteur arrive en flux derrière sa frontière Suspense : son apparition est une vraie insertion dans le document, que le CSS sait animer seul. La contrainte de P10.3, garder l'en-tête sans état client, est donc tenue sans renoncer au mouvement | `animate`, `motion-design` |
 
 ---
 
@@ -315,7 +315,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P9.2 | ✅ `error.tsx` + `global-error.tsx`, et surtout **deux causes racines corrigées** | Éprouvé conteneur arrêté. Avant : 45 s d'attente puis un 200 au corps vide. Après : 3 s, coquille dégradée, squelette, puis frontière d'erreur | `anthropic-skills:react-nextjs-development`, `systematic-debugging` |
 | P9.3 | ✅ États vides pour : listing filtré, recherche, panier, wishlist, catégorie sans produit | Chacun propose une action de sortie | `design:ux-copy`, `composition-patterns` |
 | P9.4 | ✅ Validation client **et** serveur, même schéma Zod | Page `/account` créée : le brief demandait la gestion des données utilisateur, qui n'avait aucune interface. Messages rattachés au champ par `aria-describedby` | `test-driven-development`, `anthropic-skills:frontend-security-coder` |
-| P9.5 | ⚠️ Vérifié **structurellement**, pas mesuré en navigateur | Aucune largeur fixe au-delà du plus petit viewport, grilles qui retombent à une colonne, conteneurs `min-w-0` et `truncate`, plancher de 44 px sur pointeur grossier. Une mesure réelle aux quatre largeurs reste à faire | `web-design-guidelines`, `frontend-design` |
+| P9.5 | ✅ Mesuré en navigateur, et plus seulement par lecture du code | `tests/e2e/responsive.spec.ts` : 4 largeurs (360, 768, 1024, 1440) × 6 pages, sans débordement horizontal ; cibles tactiles au-dessus de 44 px ; tiroir mobile ouvert, fermé à l'Échap, focus non fuyant | `web-design-guidelines`, `frontend-design` |
 | P9.6 | ✅ Accessibilité | Contrastes **mesurés, pas affirmés** : `npm run check:contrast` lit les tokens dans `globals.css` et vérifie 32 couples. Deux échecs réels trouvés et corrigés | `design:accessibility-review`, `web-design-guidelines` |
 | P9.7 | ✅ Audit des animations | Six animations, toutes de retour d'état ou de continuité. Aucune au défilement, aucune entrée en cascade, aucune décoration en boucle, rien au-dessus de 400 ms | `review-animations`, `improve-animations` |
 | P9.8 | ✅ Repérer les endroits manquant de feedback perçu | États d'attente sur chaque bouton, mises à jour optimistes sur le cœur et le retrait de ligne, quantité affichée immédiatement, et depuis P9.1 un squelette dès la navigation | `find-animation-opportunities`, `emil-design-eng` |
@@ -335,7 +335,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P10.4 | ✅ Métadonnées dynamiques par produit et par catégorie | `metadataBase` ajouté : sans lui les URL Open Graph restaient relatives et aucun réseau social ne les résolvait. Vérifié : `og:image` absolue | `seo-audit`, `anthropic-skills:react-nextjs-development` |
 | P10.5 | ✅ JSON-LD `Product`, `Offer`, `Brand`, `BreadcrumbList`, `ItemList` | Vérifié au rendu : prix `549.00`, disponibilité `schema.org/InStock`. La validation par le Rich Results Test demande une URL publique, donc après P14 | `schema` |
 | P10.6 | ✅ `sitemap.ts` + `robots.ts` | Générés depuis la base : 58 URL. Les trois espaces de session sont exclus, pour éviter qu'un robot crée une session à chaque passage | `seo-audit` |
-| P10.7 | ⬜ **Non fait** : Lighthouse exige un navigateur | À mener avec la passe responsive de P9.5, sur le site déployé en P14 | `seo-audit`, `verification-before-completion` |
+| P10.7 | ✅ Mesuré, mais **pas par Lighthouse** | `tests/e2e/performance.spec.ts` relève directement LCP et CLS via `PerformanceObserver`, vérifie que la coquille arrive sans JavaScript et que les images sont servies en AVIF ou WebP. Un score Lighthouse dépend de la machine qui le calcule ; ces valeurs-là se comparent d'une exécution à l'autre, ce qu'on attend d'un test de non-régression. Un audit Lighthouse sur le déploiement de P14 reste souhaitable, en complément | `seo-audit`, `verification-before-completion` |
 
 ---
 
@@ -347,14 +347,14 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
 | ~~P11.1~~ | ~~Mise en place Vitest~~ → **déplacé en P2.0** | Le harnais doit exister avant P3/P4, qui se font en TDD. Il ne reste ici que l'ajout de Testing Library pour P11.6 | `test-driven-development` |
-| P11.2 | Tests unitaires des services (panier, wishlist, produits, sous-total) | Cas nominaux **et** cas limites ; c'est le cœur de la note | `test-driven-development` |
-| P11.3 | Tests unitaires des utilitaires (formatage prix, slug, curseurs de pagination) | 100 % des fonctions pures couvertes | `test-driven-development` |
-| P11.4 | Tests d'intégration repositories contre DynamoDB Local | Table créée/détruite par le harnais de test | `test-driven-development` |
-| P11.5 | Tests des routes API (nominal + erreurs) | Codes HTTP et enveloppes vérifiés | `test-driven-development` |
-| P11.6 | Tests de composants : ProductCard, QuantityStepper, EmptyState | Rendu et interactions | `test-driven-development` |
-| P11.7 | E2E Playwright : parcours achat, recherche+filtre, wishlist→panier | Les 3 parcours critiques passent | `test-driven-development`, `/run` |
-| ~~P11.8~~ | ~~CI GitHub Actions~~ → **déplacée en P2.0b** | Il ne reste ici que l'ajout du job Playwright, qui n'existe qu'à partir de P11.7 | `lean-build` |
-| P11.9 | Débogage des échecs résiduels | Cause racine identifiée, pas de test désactivé | `systematic-debugging`, `investigate-first` |
+| P11.2 | ✅ Tests unitaires des services (panier, wishlist, produits, sous-total) | Cas nominaux **et** cas limites. Faits en TDD au fil de P4 | `test-driven-development` |
+| P11.3 | ✅ Tests unitaires des utilitaires (formatage prix, slug, curseurs de pagination) | Clés, curseurs, TTL, erreurs, session : toutes les fonctions pures couvertes | `test-driven-development` |
+| P11.4 | ✅ Tests d'intégration repositories contre DynamoDB Local | Table dédiée, créée et détruite par le harnais. Les 11 patterns d'accès rejoués | `test-driven-development` |
+| P11.5 | ✅ Tests des routes API (nominal + erreurs) | Codes HTTP et enveloppes vérifiés | `test-driven-development` |
+| P11.6 | ✅ Tests de composants : ProductCard, QuantityStepper, états | 24 tests sous Testing Library. Polyfills de `showModal` et `matchMedia` dans le harnais : jsdom ne les implémente pas | `test-driven-development` |
+| P11.7 | ✅ E2E Playwright : parcours achat, recherche+filtre, wishlist→panier | **55 tests, tous verts**, contre le build de production. Les 3 parcours critiques, plus le responsive (P9.5) et les mesures de chargement (P10.7) | `test-driven-development`, `/run` |
+| P11.8 | ✅ Job Playwright ajouté à la CI (le reste déplacé en P2.0b) | Troisième job : DynamoDB Local, seed, build, Chromium, traces conservées au seul échec | `lean-build` |
+| P11.9 | ✅ Débogage des échecs résiduels | 10 échecs, aucun test désactivé. Détail ci-dessous : 2 défauts réels de l'application, 1 de la configuration de test, 7 d'hypothèses fausses dans les tests eux-mêmes | `systematic-debugging`, `investigate-first` |
 
 ---
 
@@ -666,25 +666,78 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P11.1 → P11.9, la phase de tests.** P10 est terminée sauf P10.7, qui demande un navigateur.
+**P12.1 → P12.6, qualité, revue et sécurité.** P11 est close, et P9.5, P10.7 et P8.10 avec elle :
+il ne reste aucune tâche en suspens derrière.
 
-Le point signalé depuis P6 est réglé, et le build le montre : **toutes les routes sont passées de
-`ƒ` à `◐`**, coquille statique plus contenu en flux. Ce que l'activation des Cache Components a
-imposé de corriger, chaque fois signalé précisément par la validation de Next :
+### Ce que la phase de tests a réellement trouvé
 
-| Blocage | Correction |
+La suite de bout en bout a échoué dix fois avant d'être verte. Le tri compte plus que le compte,
+parce qu'il dit ce que les tests ont servi à trouver.
+
+**Deux défauts réels de l'application.**
+
+| Défaut | Correction |
 | --- | --- |
-| L'en-tête lisait catalogue **et** session dans le même composant | Les compteurs sont devenus des composants serveur distincts, chacun derrière sa frontière |
-| Un `try/catch` avalait le signal d'interruption de prérendu | `unstable_rethrow` dans les trois chargeurs de la mise en page |
-| L'état des favoris passait par le serveur, rendant chaque grille dépendante de la session | Une lecture client unique par page, partagée par toutes les cartes |
-| `usePathname` dans le tiroir mobile | Frontière Suspense avec un repli de même gabarit |
-| Panier, favoris et données personnelles lisaient la session au premier niveau | Ossature prérendue, contenu en flux derrière son squelette |
+| « Il ne reste que 1 **exemplaires** » : l'accord du pluriel n'était pas fait dans le message de refus du panier | Singulier conditionnel, aligné sur le reste de l'interface |
+| Quitter le panier moins de 450 ms après un clic sur « plus » **perdait la modification en silence** : le minuteur d'anti-rafale était annulé au démontage | Le démontage envoie désormais la valeur en attente au lieu de l'abandonner |
 
-Ce qui reste pour P11 :
+Le second mérite un mot. Le délai de 450 ms existe pour qu'un passage de 1 à 6 en cinq clics ne
+produise qu'un appel. Annuler l'envoi au démontage était le choix par défaut, et il était faux : au
+moment du clic, l'intention de l'utilisateur est déjà exprimée. Reste une fenêtre que rien ne peut
+couvrir depuis un composant, celle d'un rechargement complet qui interrompt la requête en vol.
 
-1. **P11.6** : tests de composants, la seule partie vraiment nouvelle. Testing Library reste à
-   ajouter.
-2. **P11.7** : les trois parcours en Playwright, qui couvriront aussi P9.5 et P10.7 puisqu'ils
-   tournent dans un vrai navigateur.
-3. **P11.8** : le job Playwright dans la CI, reliquat de la tâche déjà déplacée en P2.0b.
-4. P11.1 à P11.5 sont déjà faits, répartis dans les phases précédentes : 268 tests au total.
+**Un défaut de la configuration de test**, et c'est le plus instructif. Playwright réutilisait un
+`next start` déjà lancé. Or `next start` lit `.next` paresseusement : une reconstruction sous ses
+pieds lui fait renvoyer 500 sur les Server Actions. Une exécution entière a donc accusé
+l'application d'un bug qui n'existait que dans le lanceur. La configuration reconstruit maintenant
+avant de démarrer, sur un port qui n'est qu'à elle.
+
+**Sept hypothèses fausses dans les tests eux-mêmes**, dont deux qui se répétaient :
+
+- Le premier produit de la grille est un amplificateur dont le stock vaut **un**. Les tests
+  d'incrément visent désormais une référence au stock connu, et non « la première carte ».
+- Pendant qu'une frontière Suspense se résout, React dépose le fragment reçu dans un `<div hidden>`
+  à la racine du document avant de le déplacer. L'élément existe brièvement **en double**, et un
+  sélecteur global lève une violation du mode strict selon la vitesse de la machine. Les
+  assertions ciblent `main`, hors zone de transit.
+- Chromium repose le focus sur `<body>` le temps d'une tabulation en fin de cycle dans un
+  `<dialog>` modal. Ce n'est pas une fuite, et exiger le contraire faisait échouer le test sur un
+  comportement correct du navigateur. L'assertion porte maintenant sur ce qui compte : aucun
+  élément focalisable hors du dialogue n'est jamais atteint.
+
+### Ce que les tests mesurent, et ce qu'ils ne mesurent pas
+
+Une nuance mesurée mérite d'être écrite, parce qu'elle corrige une affirmation de P7. **La coquille
+tient sans JavaScript, le contenu différé non.** L'en-tête, le pied de page, le fil d'Ariane et la
+navigation par catégories arrivent dans la coquille statique. L'accueil rend aussi ses produits,
+faute de `loading.tsx`. Mais `/products` et `/categories/<slug>` diffusent leur contenu en flux, et
+le remplacement du squelette est opéré par les scripts de React : sans eux, la grille et la barre
+de filtres ne sont pas visibles. C'est une propriété du rendu en flux, pas un défaut de cette
+application, mais elle contredit ce que P7 affirmait de la barre de filtres.
+
+### État de la vérification
+
+| Suite | Volume | Portée |
+| --- | --- | --- |
+| Unitaires et composants | 214 | Services, utilitaires, schémas, composants |
+| Intégration | contre DynamoDB Local | Repositories, 11 patterns d'accès, routes API |
+| Bout en bout | 55 | 3 parcours critiques, responsive, chargement, prérendu |
+
+La CI compte trois jobs : `verify`, `integration`, `e2e`.
+
+### Ce qui reste, en dehors de la roadmap
+
+**La CI n'a toujours jamais tourné sur GitHub**, alors que le workflow est enregistré, actif, le
+dépôt public et les Actions activées. Signalé à chaque phase depuis P2. Cela demande une
+vérification dans l'onglet Actions du dépôt, que je ne peux pas faire d'ici.
+
+### Ordre proposé pour P12
+
+1. **P12.4** en premier, et non en quatrième : la règle de dépendance entre couches est le critère
+   d'architecture le plus visible à l'évaluation. Une violation trouvée tôt se corrige avant que la
+   revue générale ne s'appuie dessus.
+2. **P12.1** : revue complète du diff, phase par phase.
+3. **P12.3** : revue de sécurité, secrets, validation des entrées, exposition des erreurs, en-têtes.
+4. **P12.2** : passe de simplification, une fois qu'on sait ce qui est juste.
+5. **P12.6** : vérification finale contre le brief, puce par puce.
+6. **P12.5** : nettoyage de l'historique, en dernier, quand plus rien ne bouge.
