@@ -2,6 +2,8 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
+import { unstable_rethrow } from "next/navigation";
+
 import { toAppError, type AppErrorCode } from "@/lib/errors";
 
 /**
@@ -45,6 +47,11 @@ export async function runAction<T>(
   try {
     return { success: true, data: await run() };
   } catch (error) {
+    // Même raison que pour les routes : `redirect()` et l'abandon de prérendu
+    // passent par une exception interne, qui ne doit pas devenir un résultat
+    // d'échec.
+    unstable_rethrow(error);
+
     const appError = toAppError(error);
 
     console.error(

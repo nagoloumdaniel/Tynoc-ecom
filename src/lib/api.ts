@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { unstable_rethrow } from "next/navigation";
 import { NextResponse } from "next/server";
 import type { ZodType } from "zod";
 
@@ -97,6 +98,14 @@ export async function handleRoute<T>(
   try {
     return await run();
   } catch (error) {
+    // Next signale par une exception interne qu'il faut abandonner un
+    // prérendu ou effectuer une redirection. L'avaler la transformerait en
+    // réponse 500, et surtout en réponse **mise en cache**. Depuis
+    // l'activation des Cache Components, les routes `GET` suivent le modèle
+    // de prérendu des pages : le cas s'est produit au build, avec un 500
+    // journalisé sur `/api/products`.
+    unstable_rethrow(error);
+
     const appError = toAppError(error);
     const { status, body } = errorToApiPayload(appError, requestId);
 
