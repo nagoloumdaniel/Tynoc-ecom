@@ -151,7 +151,7 @@ function CounterLink({
       {/* La pastille porte le nombre pour les lecteurs d'écran : le libellé du
           lien ne peut plus le contenir, puisqu'il est rendu au prérendu alors
           que le compteur arrive plus tard. */}
-      <span className="bg-signal text-ink-strong absolute top-1 right-1 grid min-w-4 place-items-center rounded-full px-1 text-[10px] leading-4 font-semibold tabular-nums empty:hidden">
+      <span className="animate-count bg-signal text-ink-strong absolute top-1 right-1 grid min-w-4 place-items-center rounded-full px-1 text-[10px] leading-4 font-semibold tabular-nums empty:hidden">
         {count}
       </span>
     </Link>

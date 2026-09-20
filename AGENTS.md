@@ -103,5 +103,14 @@ npm run verify        # typecheck + lint + format:check, à passer avant tout co
   layout qui le contient : une exception dans l'en-tête ou le pied de page ne peut être rattrapée
   que par `global-error.tsx`, qui remplace le document entier. Les chargeurs de l'en-tête et du
   pied de page rattrapent donc leurs propres erreurs et se dégradent.
+- **En Playwright, cibler `main` et non la page entière.** Pendant qu'une frontière Suspense se
+  résout, React dépose le fragment reçu dans un `<div hidden>` à la racine du document avant de le
+  déplacer dans l'arbre. Le même élément existe donc brièvement en double, et un sélecteur global
+  lève une violation du mode strict de façon intermittente, selon la vitesse de la machine. Ce
+  n'est pas un défaut de l'application : la copie de transit vit hors de `main`.
+- **Les tests de bout en bout ne réutilisent jamais un serveur déjà lancé**, et tournent sur le
+  port 3100. Un `next start` laissé actif sert le contenu de `.next` en lecture paresseuse : une
+  reconstruction sous ses pieds lui fait renvoyer 500 sur les Server Actions, et l'échec ressemble
+  à un bug applicatif. `playwright.config.ts` reconstruit donc avant de démarrer.
 - Le dossier du dépôt contient des majuscules (`Tynoc-ecom`), ce que npm refuse comme nom de
   paquet : le `name` du `package.json` est `tynoc-ecom`.

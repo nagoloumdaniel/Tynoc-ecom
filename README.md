@@ -89,9 +89,10 @@ npm run build         # build de production
 npm run typecheck     # vérification des types
 npm run lint          # ESLint
 npm run format        # Prettier
-npm test              # tests unitaires
+npm test              # tests unitaires et de composants
 npm run test:watch    # tests unitaires en continu
 npm run test:integration  # tests contre DynamoDB Local (conteneur requis)
+npm run test:e2e          # parcours Playwright : construit, sert sur le port 3100, puis teste
 npm run check:contrast    # contrastes WCAG des tokens, lus dans globals.css
 npm run verify        # typecheck + lint + format + tests, à passer avant tout commit
 
@@ -115,6 +116,6 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P7 : Storefront | ✅ Terminée |
 | P8 : Panier & wishlist | ✅ Terminée |
 | P9 : États, résilience, a11y | ✅ Terminée |
-| P10 : Performance & SEO | ✅ Terminée (hors Lighthouse) |
-| P11 : Tests | ⬜ En cours |
+| P10 : Performance & SEO | ✅ Terminée |
+| P11 : Tests | ✅ Terminée |
 | P12 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |

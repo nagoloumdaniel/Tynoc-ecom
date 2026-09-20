@@ -45,6 +45,8 @@ export function QuantityStepper({
   const [draft, setDraft] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Valeur en attente d'envoi, ou `null` si rien n'est différé. */
+  const queued = useRef<number | null>(null);
 
   // La valeur serveur fait autorité : elle peut changer sous nos pieds, par
   // exemple après un retrait depuis un autre onglet.
@@ -58,21 +60,49 @@ export function QuantityStepper({
     setDisplayed(quantity);
   }
 
-  // Un composant démonté pendant le délai ne doit pas déclencher son envoi.
-  useEffect(() => () => clearTimer(), []);
+  // Un démontage pendant le délai **envoie** la valeur en attente au lieu de
+  // l'abandonner.
+  //
+  // C'était l'inverse, et un test de bout en bout l'a pris en défaut : quitter
+  // le panier moins d'une demi-seconde après un clic sur « plus » perdait la
+  // modification, sans rien dire. Le délai existe pour regrouper les écritures,
+  // pas pour les annuler. L'intention est exprimée dès le clic.
+  //
+  // Reste une fenêtre que rien ne peut couvrir ici : un rechargement complet de
+  // la page interrompt la requête en vol. Elle dure le temps du délai, et la
+  // traiter demanderait un envoi hors cycle de vie, sans rapport avec le gain.
+  useEffect(
+    () => () => {
+      const next = takeQueued();
+      // Envoi sans attente de réponse : le composant n'existe plus, il n'y a
+      // plus d'affichage à corriger. L'écriture, elle, doit partir.
+      if (next !== null) void setCartQuantityAction({ productId, quantity: next });
+    },
+    [productId],
+  );
 
-  function clearTimer() {
+  /** Annule le minuteur et rend la valeur qu'il portait. */
+  function takeQueued(): number | null {
     if (timer.current !== null) {
       clearTimeout(timer.current);
       timer.current = null;
     }
+
+    const next = queued.current;
+    queued.current = null;
+
+    return next;
   }
 
   function schedule(next: number) {
     setDisplayed(next);
-    clearTimer();
+    takeQueued();
+    queued.current = next;
 
     timer.current = setTimeout(() => {
+      timer.current = null;
+      queued.current = null;
+
       startTransition(async () => {
         const result = await setCartQuantityAction({ productId, quantity: next });
 
