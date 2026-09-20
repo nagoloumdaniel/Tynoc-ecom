@@ -278,3 +278,30 @@
     }
   }
 }
+
+@layer components {
+  /* Entrée d'un élément de liste (P8.10).
+
+     `@starting-style` décrit l'état de départ d'un élément au moment où il
+     entre dans le document. L'animation ne coûte donc ni JavaScript, ni état
+     client, ni bibliothèque, et elle se limite à `opacity` et `transform`,
+     les deux seules propriétés que le compositeur anime sans recalculer la
+     mise en page.
+
+     Son rôle est la continuité : une ligne qui apparaît d'un coup se
+     confond avec un rechargement de page. Elle reste sous le seuil de la
+     durée « entrée d'élément » de la doctrine de motion, et la règle de
+     mouvement réduit ci-dessus la neutralise. */
+  .animate-enter {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--duration-base) var(--ease-settle),
+      transform var(--duration-base) var(--ease-settle);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(0.35rem);
+    }
+  }
+}

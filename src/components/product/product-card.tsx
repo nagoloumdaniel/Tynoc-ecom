@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { AvailabilityBadge } from "@/components/ui/badge";
 import { cn, formatPrice } from "@/lib/cn";
 import { availabilityOf, type Product } from "@/schemas/product";
@@ -91,9 +92,24 @@ export function ProductCard({
           </Link>
         </h3>
 
-        <p className="text-ink-strong mt-0.5 text-sm font-semibold">
-          {formatPrice(product.priceCents)}
-        </p>
+        <div className="mt-0.5 flex items-center justify-between gap-2">
+          <p className="text-ink-strong text-sm font-semibold">{formatPrice(product.priceCents)}</p>
+
+          {/* Ajout depuis la carte, en plus de la fiche produit (P8.5). Même
+              composant des deux côtés, donc mêmes messages et même gestion du
+              refus. Au-dessus de la surcouche de lien, sinon le clic
+              naviguerait au lieu d'ajouter. */}
+          <div className="relative z-10">
+            <AddToCartButton
+              productId={product.id}
+              variant="outline"
+              size="sm"
+              disabled={availability === "out-of-stock"}
+            >
+              Ajouter
+            </AddToCartButton>
+          </div>
+        </div>
       </div>
     </article>
   );
