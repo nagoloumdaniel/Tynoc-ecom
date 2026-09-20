@@ -57,6 +57,14 @@ export function Footer({ categories }: { categories: Category[] }) {
                   Favoris
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/account"
+                  className="text-ink-muted hover:text-ink-strong text-sm transition-colors duration-(--duration-instant)"
+                >
+                  Mes données
+                </Link>
+              </li>
             </ul>
           </nav>
 
