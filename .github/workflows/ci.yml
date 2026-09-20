@@ -74,7 +74,7 @@ jobs:
       APP_AWS_ACCESS_KEY_ID: LOCALDEVACCESSKEY
       APP_AWS_SECRET_ACCESS_KEY: localdevsecretkeylocaldevsecretkey
       DYNAMODB_TABLE_NAME: tynoc-ecom-ci
-      DYNAMODB_ENDPOINT: http://localhost:8000
+      DYNAMODB_ENDPOINT: http://127.0.0.1:8000
       SESSION_SECRET: ci0123456789abcdef0123456789abcdef0123456789
 
     steps:
@@ -93,7 +93,7 @@ jobs:
       - name: Attendre DynamoDB Local
         run: |
           for i in $(seq 1 30); do
-            if curl -s -o /dev/null http://localhost:8000; then
+            if curl -s -o /dev/null http://127.0.0.1:8000; then
               echo "DynamoDB Local est prêt."
               exit 0
             fi

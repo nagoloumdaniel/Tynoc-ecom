@@ -36,18 +36,27 @@ export function translateDynamoError(error: unknown, context: string): AppError 
   const name = error instanceof Error ? error.name : "ErreurInconnue";
   const detail = error instanceof Error ? error.message : String(error);
 
+  // Cause **aplatie**, jamais l'objet du SDK lui-même.
+  //
+  // Quand la base est injoignable, le SDK lève un `AggregateError` portant un
+  // tableau `errors`. Attaché tel quel, il traverse la chaîne d'erreurs
+  // jusqu'à la sérialisation du framework, qui lève alors un `TypeError` non
+  // rattrapé. Observé en conditions réelles : la requête pendait une minute
+  // puis rendait un 200 au corps vide, sans frontière d'erreur, c'est-à-dire
+  // exactement la page blanche que P9.2 doit supprimer.
+  //
+  // Le type et le message sont ce qui sert réellement au diagnostic ; l'objet
+  // n'apportait rien de plus et coûtait cette panne.
+  const cause = new Error(`${name}: ${detail}`);
+
   if (CONFLICT_ERRORS.has(name)) {
-    return new ConflictError("Cette opération entre en conflit avec l'état actuel.", {
-      cause: error,
-    });
+    return new ConflictError("Cette opération entre en conflit avec l'état actuel.", { cause });
   }
 
   // Tout le reste est une panne de notre côté, y compris `ValidationException`,
   // qui signifie que *notre* expression est fausse. La traduire en 400
   // accuserait l'utilisateur d'un bug interne.
-  return new DatabaseError(`Échec DynamoDB pendant ${context} (${name}) : ${detail}`, {
-    cause: error,
-  });
+  return new DatabaseError(`Échec DynamoDB pendant ${context} (${name}) : ${detail}`, { cause });
 }
 
 /**
