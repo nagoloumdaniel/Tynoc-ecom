@@ -115,5 +115,6 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P7 : Storefront | ✅ Terminée |
 | P8 : Panier & wishlist | ✅ Terminée |
 | P9 : États, résilience, a11y | ✅ Terminée |
-| P10 : Performance & SEO | ⬜ En cours |
-| P11 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P10 : Performance & SEO | ✅ Terminée (hors Lighthouse) |
+| P11 : Tests | ⬜ En cours |
+| P12 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
