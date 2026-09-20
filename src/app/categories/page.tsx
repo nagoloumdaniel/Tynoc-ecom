@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { Breadcrumb } from "@/components/layout/breadcrumb";
-import { productService } from "@/server/services";
+import { getCategories } from "@/server/catalogue";
 
 export const metadata: Metadata = {
   title: "Catégories",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
  * avant le clic, plutôt qu'après, sur une page sans résultat.
  */
 export default async function CategoriesPage() {
-  const categories = await productService.listCategories();
+  const categories = await getCategories();
 
   return (
     <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-6 px-4 py-8 md:px-6">

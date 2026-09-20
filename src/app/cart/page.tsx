@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { CartLines } from "@/components/cart/cart-lines";
 import { OrphanLines } from "@/components/cart/orphan-lines";
+import { CartSkeleton } from "@/components/feedback/states";
 import { EmptyState } from "@/components/feedback/states";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
@@ -27,25 +29,33 @@ export const metadata: Metadata = {
  *
  * Seules les lignes sont clientes, parce qu'elles portent des actions.
  */
-export default async function CartPage() {
-  const userId = await getSessionUserId();
-  const summary = await cartService.getSummary(userId);
-
-  const empty = summary.lines.length === 0 && summary.orphanProductIds.length === 0;
-
+export default function CartPage() {
   return (
     <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-6 px-4 py-8 md:px-6">
       <Breadcrumb items={[{ label: "Accueil", href: "/" }, { label: "Panier" }]} />
 
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold tracking-tight">Panier</h1>
-        {summary.itemCount > 0 ? (
-          <p className="text-ink-muted text-sm tabular-nums">
-            {summary.itemCount} {summary.itemCount > 1 ? "articles" : "article"}
-          </p>
-        ) : null}
       </header>
 
+      {/* Le contenu dépend de la session, donc il ne peut pas être prérendu.
+          L'ossature, elle, le peut : elle part dans la coquille statique et
+          le panier arrive en flux derrière son squelette (P10.1). */}
+      <Suspense fallback={<CartSkeleton count={2} />}>
+        <CartContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function CartContent() {
+  const userId = await getSessionUserId();
+  const summary = await cartService.getSummary(userId);
+
+  const empty = summary.lines.length === 0 && summary.orphanProductIds.length === 0;
+
+  return (
+    <>
       {empty ? (
         <EmptyState
           title="Votre panier est vide."
@@ -95,6 +105,6 @@ export default async function CartPage() {
           </Card>
         </div>
       )}
-    </div>
+    </>
   );
 }

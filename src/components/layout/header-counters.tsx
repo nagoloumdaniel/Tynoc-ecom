@@ -1,64 +1,55 @@
-import type { Category } from "@/schemas/category";
-import { cartService, productService, wishlistService } from "@/server/services";
+import { unstable_rethrow } from "next/navigation";
+
+import { cartService, wishlistService } from "@/server/services";
 import { getOptionalSessionUserId } from "@/server/session";
 
-import { Header } from "./header";
-
 /**
- * Chargement des données de l'en-tête (P9.2).
+ * Compteurs de l'en-tête (P10.1).
  *
- * Ce composant **ne doit jamais lever**, et c'est une contrainte
- * d'architecture, pas de la prudence.
+ * Isolés du reste de l'en-tête, et c'est tout l'enjeu de la phase. Ils sont la
+ * **seule** partie de la coquille qui dépende réellement de la requête : les
+ * mélanger à la lecture des catégories, comme c'était le cas, suffisait à
+ * empêcher le prérendu de toutes les routes du site.
  *
- * `error.tsx` enveloppe les pages, mais **pas la mise en page racine qui le
- * contient**. Une exception levée ici ne peut donc être rattrapée que par
- * `global-error.tsx`, qui remplace le document entier : une panne de base
- * ferait disparaître le site au lieu d'afficher une page d'erreur dans sa
- * coquille habituelle.
- *
- * Constaté en conditions réelles avant correction : conteneur arrêté, la
- * réponse était un 200 avec un corps vide. Pire qu'une erreur, parce que rien
- * n'indiquait qu'il y avait un problème.
- *
- * La dégradation est donc explicite. Sans catégories, la navigation se réduit
- * au logo et aux compteurs, et la page en dessous affiche son erreur
- * normalement.
+ * Chacun est rendu derrière sa propre frontière Suspense. Le repli part dans
+ * la coquille statique, et la valeur arrive en flux. Un compteur de panier ne
+ * mérite pas de retarder l'affichage du catalogue.
  */
-export async function HeaderWithCounters() {
-  const [categories, cartCount, wishlistCount] = await Promise.all([
-    safely<Category[]>(() => productService.listCategories(), []),
-    safelyForSession((userId) => cartService.getItemCount(userId), 0),
-    safelyForSession(async (userId) => (await wishlistService.list(userId)).length, 0),
-  ]);
 
-  return <Header categories={categories} cartCount={cartCount} wishlistCount={wishlistCount} />;
+export async function CartCount() {
+  return <>{await safeCount((userId) => cartService.getItemCount(userId))}</>;
+}
+
+export async function WishlistCount() {
+  return <>{await safeCount(async (userId) => (await wishlistService.list(userId)).length)}</>;
 }
 
 /**
- * Exécute une lecture et retombe sur une valeur neutre en cas d'échec.
+ * Lecture tolérante : une panne de base affiche zéro plutôt que de faire
+ * tomber la mise en page racine, que `error.tsx` ne peut pas rattraper.
  *
- * L'erreur est journalisée côté serveur : la dégradation doit rester visible
- * dans les logs, sinon une panne partielle passe inaperçue pendant des jours.
+ * `unstable_rethrow` est indispensable ici. Next signale l'interruption d'un
+ * prérendu par une exception interne : l'avaler ferait croire à un échec de
+ * lecture et figerait un « 0 » dans la coquille statique, alors que le vrai
+ * compteur doit arriver en flux à chaque requête.
  */
-async function safely<T>(read: () => Promise<T>, fallback: T): Promise<T> {
+async function safeCount(read: (userId: string) => Promise<number>): Promise<number> {
   try {
-    return await read();
+    const userId = await getOptionalSessionUserId();
+    if (!userId) return 0;
+
+    return await read(userId);
   } catch (error) {
+    unstable_rethrow(error);
+
     console.error(
       JSON.stringify({
         level: "warn",
-        context: "en-tête dégradé",
+        context: "compteur d'en-tête dégradé",
         message: error instanceof Error ? error.message : String(error),
       }),
     );
-    return fallback;
+
+    return 0;
   }
-}
-
-/** Même principe, mais sans session il n'y a simplement rien à lire. */
-async function safelyForSession<T>(read: (userId: string) => Promise<T>, fallback: T): Promise<T> {
-  const userId = await safely(() => getOptionalSessionUserId(), null);
-  if (!userId) return fallback;
-
-  return safely(() => read(userId), fallback);
 }

@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import { toggleWishlistAction } from "@/server/actions/wishlist";
 
+import { useIsInWishlist } from "./wishlist-state";
+
 /**
  * Bouton favori (P6.6, P8.7).
  *
@@ -18,23 +20,22 @@ import { toggleWishlistAction } from "@/server/actions/wishlist";
  * transition : il n'y a pas de retour arrière à écrire, seulement un message
  * à afficher.
  *
- * L'état initial est lu en base par la page qui rend ce bouton, jamais deviné
- * localement, sans quoi le cœur serait vide au rechargement sur un produit
- * pourtant en favori.
+ * L'état initial vient de la base, via la lecture partagée du fournisseur :
+ * une requête par page, pas une par carte. Il n'est jamais deviné localement,
+ * sans quoi le cœur repartirait vide au rechargement sur un produit pourtant
+ * en favori.
  */
 export function WishlistButton({
   productId,
   productTitle,
-  initialInWishlist = false,
   className,
 }: {
   productId: string;
   productTitle: string;
-  initialInWishlist?: boolean;
   className?: string;
 }) {
   const [pending, startTransition] = useTransition();
-  const [inWishlist, setOptimistic] = useOptimistic(initialInWishlist);
+  const [inWishlist, setOptimistic] = useOptimistic(useIsInWishlist(productId));
 
   function toggle() {
     startTransition(async () => {

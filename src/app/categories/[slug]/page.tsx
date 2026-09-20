@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/feedback/states";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { ProductGrid } from "@/components/product/product-grid";
+import { BreadcrumbJsonLd, ItemListJsonLd } from "@/components/seo/json-ld";
 import { isAppError } from "@/lib/errors";
-import { productService } from "@/server/services";
-import { getWishlistProductIds } from "@/server/storefront";
+import { getCategories, getCategory, searchCatalogue } from "@/server/catalogue";
 
 /**
  * Page catégorie (P7.5).
@@ -20,13 +20,13 @@ import { getWishlistProductIds } from "@/server/storefront";
  * deux fois la même logique d'URL.
  */
 export async function generateStaticParams() {
-  const categories = await productService.listCategories();
+  const categories = await getCategories();
   return categories.map((category) => ({ slug: category.slug }));
 }
 
 async function loadCategory(slug: string) {
   try {
-    return await productService.getCategoryBySlug(slug);
+    return await getCategory(slug);
   } catch (error) {
     if (isAppError(error) && error.code === "NOT_FOUND") notFound();
     throw error;
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const { slug } = await params;
 
   try {
-    const category = await productService.getCategoryBySlug(slug);
+    const category = await getCategory(slug);
     return { title: category.name, description: category.description };
   } catch {
     return { title: "Catégorie introuvable" };
@@ -50,13 +50,19 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
   const { slug } = await params;
   const category = await loadCategory(slug);
 
-  const [result, wishlistIds] = await Promise.all([
-    productService.search({ category: slug, sort: "price-asc", pageSize: 48 }),
-    getWishlistProductIds(),
-  ]);
+  const result = await searchCatalogue({ category: slug, sort: "price-asc", pageSize: 48 });
 
   return (
     <div className="mx-auto flex w-full max-w-(--container-page) flex-col gap-6 px-4 py-8 md:px-6">
+      <ItemListJsonLd products={result.items} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Accueil", path: "/" },
+          { name: "Catégories", path: "/categories" },
+          { name: category.name, path: `/categories/${category.slug}` },
+        ]}
+      />
+
       <Breadcrumb
         items={[
           { label: "Accueil", href: "/" },
@@ -80,7 +86,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[s
           action={{ label: "Voir tout le catalogue", href: "/products" }}
         />
       ) : (
-        <ProductGrid products={result.items} wishlistIds={wishlistIds} />
+        <ProductGrid products={result.items} />
       )}
     </div>
   );

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { EraseData } from "@/components/account/erase-data";
 import { ProfileForm } from "@/components/account/profile-form";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/surface";
+import { Card, Skeleton } from "@/components/ui/surface";
 import { formatPrice } from "@/lib/cn";
 import { SESSION_TTL_DAYS } from "@/lib/limits";
 import { userService } from "@/server/services";
@@ -27,15 +28,7 @@ export const metadata: Metadata = {
  * qui est réellement stocké, y compris l'identifiant de session, plutôt que de
  * l'affirmer dans une politique de confidentialité que personne ne lit.
  */
-export default async function AccountPage() {
-  const userId = await getSessionUserId();
-
-  // La session n'existe en base qu'à partir de la première écriture. Une
-  // visite sans aucun ajout n'a donc encore rien à montrer, ce qui n'est pas
-  // une erreur.
-  await userService.getOrCreate(userId);
-  const overview = await userService.getOverview(userId);
-
+export default function AccountPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-8 md:px-6">
       <Breadcrumb items={[{ label: "Accueil", href: "/" }, { label: "Mes données" }]} />
@@ -48,6 +41,35 @@ export default async function AccountPage() {
         </p>
       </header>
 
+      {/* Tout ce qui suit dépend de la session : prérendre l'ossature, laisser
+          le contenu arriver en flux (P10.1). */}
+      <Suspense fallback={<AccountSkeleton />}>
+        <AccountContent />
+      </Suspense>
+    </div>
+  );
+}
+
+function AccountSkeleton() {
+  return (
+    <div className="flex flex-col gap-8" role="status" aria-label="Chargement de vos données">
+      <Skeleton className="h-28 w-full max-w-sm" />
+      <Skeleton className="h-56 w-full" />
+    </div>
+  );
+}
+
+async function AccountContent() {
+  const userId = await getSessionUserId();
+
+  // La session n'existe en base qu'à partir de la première écriture. Une
+  // visite sans aucun ajout n'a donc encore rien à montrer, ce qui n'est pas
+  // une erreur.
+  await userService.getOrCreate(userId);
+  const overview = await userService.getOverview(userId);
+
+  return (
+    <>
       <section className="flex flex-col gap-4">
         <h2 className="text-ink-strong text-lg font-semibold">Profil</h2>
         <ProfileForm displayName={overview.user.displayName} />
@@ -100,7 +122,7 @@ export default async function AccountPage() {
           </ButtonLink>
         </div>
       </section>
-    </div>
+    </>
   );
 }
 
