@@ -25,6 +25,9 @@ on:
     branches: ["**"]
   pull_request:
     branches: [main]
+  # Déclenchement manuel depuis l'onglet Actions. Utile pour relancer une
+  # exécution sans pousser un commit vide.
+  workflow_dispatch:
 
 # Un push qui en remplace un autre sur la même branche annule le précédent.
 concurrency:
