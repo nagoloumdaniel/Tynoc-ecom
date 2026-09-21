@@ -79,7 +79,16 @@ test.describe("découverte vers panier", () => {
     const addButton = page.getByRole("button", { name: "Ajouter au panier" });
     await addButton.click();
     await expect(page.getByText("Ajouté au panier")).toBeVisible();
+
+    // La notification du premier ajout est encore affichée : elle ne prouve
+    // pas que le second a abouti. On attend la réponse du serveur avant de
+    // quitter la page, sinon la navigation lit le panier trop tôt. En local
+    // la course passait ; contre le site en ligne, non (trouvé en P14).
+    const secondWrite = page.waitForResponse(
+      (response) => response.request().method() === "POST" && response.ok(),
+    );
     await addButton.click();
+    await secondWrite;
 
     await page.goto("/cart");
     await expect(cart(page).getByRole("button", { name: "Retirer" })).toHaveCount(1);
@@ -123,7 +132,14 @@ test.describe("découverte vers panier", () => {
 
     // Rien ne disparaît sans filet : la notification propose de revenir.
     await expect(page.getByRole("button", { name: "Annuler" })).toBeVisible();
+
+    // L'annulation réécrit la ligne en base : on attend cette écriture avant
+    // de recharger, pour la même raison que le double ajout ci-dessus.
+    const restored = page.waitForResponse(
+      (response) => response.request().method() === "POST" && response.ok(),
+    );
     await page.getByRole("button", { name: "Annuler" }).click();
+    await restored;
 
     await page.reload();
     await expect(cart(page).getByRole("button", { name: "Retirer" })).toHaveCount(1);

@@ -24,6 +24,14 @@ import { defineConfig, devices } from "@playwright/test";
 /** Port dédié aux tests, pour ne pas entrer en conflit avec `npm run dev`. */
 const PORT = 3100;
 
+/**
+ * Cible externe facultative (P14.4) : `PLAYWRIGHT_BASE_URL=https://… npm run test:e2e`
+ * rejoue la suite contre un site déployé, sans construire ni démarrer de
+ * serveur local. C'est ce qui vérifie le site en ligne dans ses conditions
+ * réelles : réseau, CDN, base AWS, fonctions à Paris.
+ */
+const EXTERNAL_BASE_URL = process.env["PLAYWRIGHT_BASE_URL"];
+
 export default defineConfig({
   testDir: "./tests/e2e",
   // Un seul worker : les parcours écrivent dans la même table DynamoDB Local,
@@ -35,7 +43,7 @@ export default defineConfig({
   reporter: process.env["CI"] ? "github" : "list",
 
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
+    baseURL: EXTERNAL_BASE_URL ?? `http://127.0.0.1:${PORT}`,
     // Trace conservée au premier échec : reconstituer un parcours à partir
     // d'un message d'assertion seul est beaucoup plus long.
     trace: "retain-on-failure",
@@ -44,14 +52,16 @@ export default defineConfig({
 
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 
-  webServer: {
-    command: `npm run build && npm run start -- --port ${PORT}`,
-    url: `http://127.0.0.1:${PORT}`,
-    // Jamais de réutilisation : le serveur doit servir le build que ces tests
-    // viennent de produire, et rien d'autre.
-    reuseExistingServer: false,
-    timeout: 300_000,
-    stdout: "ignore",
-    stderr: "pipe",
-  },
+  webServer: EXTERNAL_BASE_URL
+    ? undefined
+    : {
+        command: `npm run build && npm run start -- --port ${PORT}`,
+        url: `http://127.0.0.1:${PORT}`,
+        // Jamais de réutilisation : le serveur doit servir le build que ces tests
+        // viennent de produire, et rien d'autre.
+        reuseExistingServer: false,
+        timeout: 300_000,
+        stdout: "ignore",
+        stderr: "pipe",
+      },
 });

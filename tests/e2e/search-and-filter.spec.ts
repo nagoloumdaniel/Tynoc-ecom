@@ -33,11 +33,19 @@ test.describe("recherche et filtres", () => {
   test("une adresse filtrée se recharge à l'identique", async ({ page }) => {
     // C'est la conséquence utile du choix de porter l'état par l'URL : le lien
     // se partage tel quel.
-    await page.goto("/products?category=casques&sort=price-desc");
+    const titles = page.locator("main article h3 a");
 
-    const order = await page.locator("main article h3 a").allInnerTexts();
+    // `allInnerTexts` n'attend rien : il lit la grille à l'instant où il est
+    // appelé. La grille arrive en flux, donc on attend qu'elle soit là. En
+    // local la course passait ; contre le site en ligne, le test lisait une
+    // grille vide ou partielle (trouvé en P14).
+    await page.goto("/products?category=casques&sort=price-desc");
+    await expect(titles.first()).toBeVisible();
+    const order = await titles.allInnerTexts();
+
     await page.reload();
-    const afterReload = await page.locator("main article h3 a").allInnerTexts();
+    await expect(titles.first()).toBeVisible();
+    const afterReload = await titles.allInnerTexts();
 
     expect(afterReload).toEqual(order);
     expect(order.length).toBeGreaterThan(1);
@@ -75,6 +83,7 @@ test.describe("recherche et filtres", () => {
     await page.goto("/products?sort=price-asc&category=casques");
 
     // Le prix est le dernier nombre de la carte, en chiffres tabulaires.
+    await expect(page.locator("main article").first()).toBeVisible();
     const texts = await page.locator("main article").allInnerTexts();
     const values = texts.map((text) => {
       const match = text.match(/([0-9   ]+,[0-9]{2})/);

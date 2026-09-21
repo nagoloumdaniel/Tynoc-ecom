@@ -12,7 +12,7 @@ la conception de la base et la gestion des erreurs. Ce README en suit les huit s
 | | |
 | --- | --- |
 | Dépôt | <https://github.com/nagoloumdaniel/Tynoc-ecom> |
-| En ligne | À venir (phase P14 de la roadmap) |
+| En ligne | <https://tynoc-ecom.vercel.app> |
 | Périmètre | Vitrine, panier, liste de souhaits, données utilisateur. **Pas de paiement** : hors énoncé |
 
 ## Sommaire
@@ -326,6 +326,7 @@ npm run start
 | `npm test` | Tests unitaires et de composants : services, fonctions pures, composants |
 | `npm run test:integration` | Repositories et routes API contre DynamoDB Local (conteneur requis) |
 | `npm run test:e2e` | Parcours Playwright contre le build de production, sur le port 3100 |
+| `PLAYWRIGHT_BASE_URL=https://tynoc-ecom.vercel.app npm run test:e2e` | Les mêmes parcours contre le site en ligne |
 | `npm run verify` | Types, lint (dont la règle des couches), format, contrastes WCAG, tests unitaires |
 | `npm run screenshots` | Régénère les captures de ce README |
 
@@ -337,6 +338,9 @@ contenu.
 **Sécurité** : en-têtes HTTP (CSP, HSTS, `nosniff`, `frame-ancestors 'none'`), cookie de session
 signé et `HttpOnly`, refus des écritures d'API venues d'une autre origine, corps de requête bornés
 et validés, aucun secret dans l'historique Git.
+
+Le site en ligne est hébergé sur Vercel, fonctions à Paris (`cdg1`), à côté de la table DynamoDB
+(`eu-west-3`). La suite complète y passe, dans ses conditions réelles de réseau.
 
 L'intégration continue (`.github/workflows/ci.yml`) enchaîne trois jobs : vérification statique,
 intégration contre DynamoDB Local, puis parcours de bout en bout.
