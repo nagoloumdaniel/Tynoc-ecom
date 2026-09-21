@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { randomUUID } from "node:crypto";
+
+import { errorToApiPayload } from "@/lib/api";
 import { env, isProduction } from "@/lib/env";
+import { ForbiddenError } from "@/lib/errors";
+import { isCrossOriginRequest } from "@/lib/request-origin";
 import {
   newSessionId,
   sessionCookieName,
@@ -35,6 +40,25 @@ import {
  * de signature qu'ailleurs dans l'application.
  */
 export function proxy(request: NextRequest): NextResponse {
+  // Écriture d'API venue d'une autre origine : refusée avant tout traitement,
+  // et avant d'attribuer une session qui ne servirait à rien (P12.3). Les
+  // Server Actions ont leur propre contrôle, fourni par Next.
+  if (
+    request.nextUrl.pathname.startsWith("/api/") &&
+    shouldRefreshSession(request.method) &&
+    isCrossOriginRequest({
+      origin: request.headers.get("origin"),
+      secFetchSite: request.headers.get("sec-fetch-site"),
+      host: request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
+    })
+  ) {
+    const { status, body } = errorToApiPayload(
+      new ForbiddenError("Requête refusée : origine non autorisée."),
+      randomUUID(),
+    );
+    return NextResponse.json(body, { status });
+  }
+
   const cookieName = sessionCookieName(isProduction);
   const existing = request.cookies.get(cookieName)?.value;
 

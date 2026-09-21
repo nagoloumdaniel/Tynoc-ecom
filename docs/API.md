@@ -37,10 +37,17 @@ correspondant.
 | `code` | Statut | Signification |
 | --- | --- | --- |
 | `VALIDATION` | 400 | Paramètre, corps ou champ refusé à la frontière |
+| `FORBIDDEN` | 403 | Écriture émise depuis une autre origine (`Origin` ou `Sec-Fetch-Site`) |
 | `NOT_FOUND` | 404 | La ressource demandée n'existe pas |
 | `CONFLICT` | 409 | L'opération contredit l'état actuel (stock, plafond) |
+| `UNSUPPORTED_MEDIA_TYPE` | 415 | Corps d'écriture envoyé sans `Content-Type: application/json` |
 | `DATABASE` | 500 | Défaillance de la couche de données |
 | `INTERNAL` | 500 | Tout le reste |
+
+Les écritures (`POST`, `PATCH`, `DELETE`) doivent donc venir de la même origine et, quand elles
+portent un corps, le déclarer en `application/json`. Exiger ce type impose au navigateur un
+contrôle CORS préalable, qu'aucune origine étrangère ne franchit ; un corps `text/plain`, lui,
+partirait sans contrôle (P12.3).
 
 Le statut est porté par l'erreur elle-même, jamais décidé par la route. Les
 messages de `DATABASE` et `INTERNAL` sont remplacés par un message générique :

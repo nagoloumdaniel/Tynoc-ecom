@@ -14,7 +14,14 @@
  *    de la laisser à chaque couche appelante (P15.30).
  */
 
-export type AppErrorCode = "NOT_FOUND" | "VALIDATION" | "CONFLICT" | "DATABASE" | "INTERNAL";
+export type AppErrorCode =
+  | "NOT_FOUND"
+  | "VALIDATION"
+  | "FORBIDDEN"
+  | "UNSUPPORTED_MEDIA_TYPE"
+  | "CONFLICT"
+  | "DATABASE"
+  | "INTERNAL";
 
 /** Message rendu au client quand le message réel ne peut pas sortir du serveur. */
 const GENERIC_MESSAGE = "Une opération n'a pas pu aboutir. Réessayez dans un instant.";
@@ -70,6 +77,24 @@ export class NotFoundError extends AppError {
 export class ValidationError extends AppError {
   constructor(message: string, options?: AppErrorOptions) {
     super("VALIDATION", 400, true, message, options);
+  }
+}
+
+/**
+ * Requête refusée pour sa provenance, pas pour son contenu (P12.3).
+ *
+ * Aujourd'hui : une écriture d'API émise depuis une autre origine.
+ */
+export class ForbiddenError extends AppError {
+  constructor(message: string, options?: AppErrorOptions) {
+    super("FORBIDDEN", 403, true, message, options);
+  }
+}
+
+/** Corps envoyé dans un format que la route ne lit pas (P12.3). */
+export class UnsupportedMediaTypeError extends AppError {
+  constructor(message: string, options?: AppErrorOptions) {
+    super("UNSUPPORTED_MEDIA_TYPE", 415, true, message, options);
   }
 }
 
