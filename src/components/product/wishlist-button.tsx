@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/cn";
 import { toggleWishlistAction } from "@/server/actions/wishlist";
 
-import { useIsInWishlist } from "./wishlist-state";
+import { useConfirmWishlist, useIsInWishlist } from "./wishlist-state";
 
 /**
  * Bouton favori (P6.6, P8.7).
@@ -36,6 +36,7 @@ export function WishlistButton({
 }) {
   const [pending, startTransition] = useTransition();
   const [inWishlist, setOptimistic] = useOptimistic(useIsInWishlist(productId));
+  const confirm = useConfirmWishlist();
 
   function toggle() {
     startTransition(async () => {
@@ -46,6 +47,11 @@ export function WishlistButton({
         toast.error(result.error.message);
         return;
       }
+
+      // L'état partagé suit la réponse du serveur, pas la supposition
+      // optimiste : c'est lui que le bouton retrouve à la fin de la
+      // transition, et que les autres cartes du même produit affichent.
+      confirm(productId, result.data.inWishlist);
 
       toast.success(
         result.data.inWishlist

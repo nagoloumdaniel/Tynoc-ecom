@@ -17,6 +17,17 @@ test.describe("favoris vers panier", () => {
     await heart.click();
     await expect(page.getByText(/ajouté aux favoris/)).toBeVisible();
 
+    // Avant tout rechargement : le cœur doit rester plein une fois la
+    // transition terminée. Il se vidait, faute de mettre à jour l'état partagé
+    // (trouvé en revue, P12.1). Le délai laisse `useOptimistic` rendre la main.
+    await page.waitForTimeout(500);
+    await expect(
+      page
+        .locator("main")
+        .getByRole("button", { name: /Retirer .* des favoris/ })
+        .first(),
+    ).toBeVisible();
+
     // Le rechargement est le test réel : un état purement local repartirait
     // vide (P8.7).
     await page.reload();
