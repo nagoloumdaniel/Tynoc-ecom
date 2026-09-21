@@ -379,15 +379,15 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P13.1 | README §1 Présentation du projet | Ce que c'est, pour qui, démo en une phrase | `anthropic-skills:docs-writer`, `copywriting` |
-| P13.2 | README §2 Fonctionnalités | Liste alignée sur le brief, avec captures | `anthropic-skills:docs-writer` |
-| P13.3 | README §3 Stack technique | Versions incluses, choix justifiés | `anthropic-skills:technical-writer` |
-| P13.4 | README §4 Structure du projet | Arbre commenté, rôle de chaque dossier | `anthropic-skills:technical-writer` |
-| P13.5 | README §5 Architecture | Schéma de flux + règle de dépendance des couches | `anthropic-skills:technical-writer`, `artifact-diagramming` |
-| P13.6 | README §6 Configuration DynamoDB | Création de table, GSI, seed, IAM, modèle de données + CRUD | `anthropic-skills:technical-writer` |
-| P13.7 | README §7 Variables d'environnement | Tableau nom / rôle / exemple ; renvoi vers `.env.example` | `anthropic-skills:docs-writer` |
-| P13.8 | README §8 Installation | De `git clone` à `npm run dev`, testé sur une machine vierge | `anthropic-skills:docs-writer`, `verification-before-completion` |
-| P13.9 | Relecture finale de toute la documentation | Ton cohérent, zéro faute, zéro lien mort | `copy-editing` |
+| P13.1 | ✅ README §1 Présentation du projet | Ce que c'est, pour qui, démo en une phrase | `anthropic-skills:docs-writer`, `copywriting` |
+| P13.2 | ✅ README §2 Fonctionnalités, avec 16 captures générées par Playwright | Liste alignée sur le brief, avec captures | `anthropic-skills:docs-writer` |
+| P13.3 | ✅ README §3 Stack technique | Versions incluses, choix justifiés | `anthropic-skills:technical-writer` |
+| P13.4 | ✅ README §4 Structure du projet | Arbre commenté, rôle de chaque dossier | `anthropic-skills:technical-writer` |
+| P13.5 | ✅ README §5 Architecture | Schéma de flux + règle de dépendance des couches | `anthropic-skills:technical-writer`, `artifact-diagramming` |
+| P13.6 | ✅ README §6 Configuration DynamoDB | Création de table, GSI, seed, IAM, modèle de données + CRUD | `anthropic-skills:technical-writer` |
+| P13.7 | ✅ README §7 Variables d'environnement | Tableau nom / rôle / exemple ; renvoi vers `.env.example` | `anthropic-skills:docs-writer` |
+| P13.8 | ✅ README §8 Installation, **rejouée sur une copie vierge** : un défaut trouvé (valeurs factices trop courtes pour la validation) | De `git clone` à `npm run dev`, testé sur une machine vierge | `anthropic-skills:docs-writer`, `verification-before-completion` |
+| P13.9 | ✅ Relecture de toute la documentation : aucun lien mort, matrice de conformité à jour | Ton cohérent, zéro faute, zéro lien mort | `copy-editing` |
 
 ---
 
@@ -401,7 +401,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 | P14.2 | Déploiement Vercel, variables d'environnement configurées | Build de production vert | `anthropic-skills:vercel-react-best-practices` |
 | P14.3 | Seed de la base de production | Le site live affiche un vrai catalogue | `lean-build` |
 | P14.4 | Vérification du site live : les 3 parcours critiques en conditions réelles | Testé sur mobile physique et desktop | `/run`, `verify-and-stop` |
-| P14.5 | Captures d'écran : accueil, listing, filtres, produit, panier rempli, panier vide, wishlist, 404, vue mobile | Rangées dans `docs/screenshots/`, référencées dans le README | `image` |
+| P14.5 | ✅ Faites en P13, régénérables par `npm run screenshots`. Captures : accueil, listing, filtres, produit, panier rempli, panier vide, wishlist, 404, vue mobile | Rangées dans `docs/screenshots/`, référencées dans le README | `image` |
 | P14.6 | Finalisation du dépôt : description, topics, README affiché correctement sur GitHub | Page d'accueil du repo présentable | `finishing-a-development-branch` |
 | P14.7 | Soumission : lien GitHub + lien live + README + captures | Les 4 éléments du brief fournis | `verification-before-completion` |
 
@@ -666,41 +666,38 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P13.1 → P13.9, la documentation.** P12 est close.
+**P14, déploiement et soumission.** P13 est close ; le code et la documentation sont complets.
 
-### Ce que P12 a changé
+### Ce que P13 a trouvé
 
-La revue a trouvé **cinq défauts réels** dans du code que 350 tests laissaient passer. Chacun a été
-reproduit avant d'être corrigé, et chaque correctif a son test, écrit rouge d'abord quand c'était
-possible :
+Produire les captures d'écran a fait apparaître **un défaut réel que 350 tests laissaient
+passer** : un produit ou une catégorie inexistants affichaient « La connexion à la base de
+données a échoué ». Le `NotFoundError` levé dans une fonction `"use cache"` perdait sa classe en
+franchissant la frontière du cache, qui sérialise ce qui en sort ; la page ne le reconnaissait
+plus et le traitait comme une panne. Aucun test ne pouvait le voir : unitaires et intégration
+n'exécutent pas le cache de Next, et aucun test E2E ne visitait une adresse inexistante. Les
+lectures en cache renvoient désormais `null` pour une absence, et `tests/e2e/not-found.spec.ts`
+couvre les trois cas.
 
-| Défaut | Pourquoi les tests ne le voyaient pas |
-| --- | --- |
-| Le cœur des favoris se vidait juste après un ajout réussi | Le test E2E ne regardait qu'après rechargement |
-| Les filtres gardaient leurs anciennes valeurs après un retour arrière | Aucun test ne naviguait en arrière puis modifiait un champ |
-| Le cookie de session mourait au 90e jour, données vivantes | Un délai de 90 jours ne se teste pas en E2E ; la règle est désormais une fonction pure testée |
-| Vider le panier ou effacer ses données pouvait annoncer un succès partiel | DynamoDB Local ne limite jamais le débit : seul un faux client reproduit le refus |
+Rejouer l'installation sur une copie vierge, plutôt que la relire, a trouvé le second : le README
+invitait à mettre « n'importe quelle valeur » dans les clés AWS locales, que la validation de
+`env.ts` refuse sous 16 et 32 caractères.
 
-Côté sécurité, le site n'envoyait aucun en-tête de protection. La CSP ajoutée est **sans nonce,
-délibérément** : la documentation de Next 16 indique qu'un nonce impose le rendu dynamique de
-chaque page, ce qui aurait défait le prérendu de P10. Une CSP trop stricte casse un site en
-silence ; six pages réelles et un parcours complet vérifient qu'elle ne bloque rien.
+### Ce que P14 demande de toi
 
-### État de la vérification
+P14 ne peut pas se faire sans deux comptes à ton nom :
 
-| Suite | Volume |
-| --- | --- |
-| Unitaires et composants | 236 |
-| Intégration (DynamoDB Local) | 78 |
-| Bout en bout | 67 |
+1. **Un compte AWS**, pour la table de production et l'utilisateur IAM. Les politiques sont
+   prêtes dans `infra/`.
+2. **Un compte Vercel** relié au dépôt GitHub.
 
-### Ordre proposé pour P13
+Tout le reste est prêt : la configuration de build, les variables documentées, le seed
+idempotent. P14.5 (captures) est déjà faite.
 
-Les écarts de `docs/CONFORMITE.md` fixent la priorité :
+### Une réserve visible à trancher avant la soumission
 
-1. **Captures d'écran** d'abord (P13.2) : elles demandent le site en marche et nourrissent la
-   section fonctionnalités. Playwright peut les produire de façon reproductible, aux trois largeurs.
-2. **Les trois sections manquantes** du README : fonctionnalités (P13.2), structure du projet
-   (P13.4), configuration DynamoDB (P13.6).
-3. **Installation testée sur une copie vierge** du dépôt (P13.8), pas relue.
-4. Relecture de toute la documentation (P13.9), liens compris.
+Les photographies de substitution viennent de `picsum.photos` et n'ont aucun rapport avec les
+produits : un ananas illustre une catégorie, des oignons un casque. Elles prouvent le chargement
+d'images optimisé, pas le catalogue, et c'est la première chose qu'un évaluateur voit sur les
+captures. Deux options : des visuels neutres générés localement (une illustration par famille,
+sans droits à gérer), ou de vraies photos produit sous licence libre.

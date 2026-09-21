@@ -9,7 +9,6 @@ import { ProductGallery } from "@/components/product/product-gallery";
 import { WishlistButton } from "@/components/product/wishlist-button";
 import { AvailabilityBadge, Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/surface";
-import { isAppError } from "@/lib/errors";
 import { formatPrice } from "@/lib/cn";
 import { availabilityOf } from "@/schemas/product";
 import { getCategory, getProduct, getRelatedProducts } from "@/server/catalogue";
@@ -17,20 +16,16 @@ import { getCategory, getProduct, getRelatedProducts } from "@/server/catalogue"
 /**
  * Fiche produit (P7.6, P7.7).
  *
- * Un slug inconnu appelle `notFound()`, qui rend la page 404 globale. Le
- * service lève un `NotFoundError` ; c'est ici, à la frontière du rendu, qu'il
- * devient un 404 HTTP, et pas plus bas. Le même produit absent vaut une ligne
+ * Un slug inconnu appelle `notFound()`, qui rend la page 404 globale. La
+ * lecture mise en cache renvoie `null` pour un produit absent (voir
+ * `server/catalogue.ts`) ; c'est ici, à la frontière du rendu, que cette
+ * absence devient la page 404, et pas plus bas. Le même produit absent vaut une ligne
  * orpheline dans le panier, pas un 404 : la même absence n'a pas la même
  * conséquence selon l'appelant.
  */
 
 async function loadProduct(slug: string) {
-  try {
-    return await getProduct(slug);
-  } catch (error) {
-    if (isAppError(error) && error.code === "NOT_FOUND") notFound();
-    throw error;
-  }
+  return (await getProduct(slug)) ?? notFound();
 }
 
 export async function generateMetadata({
@@ -40,6 +35,7 @@ export async function generateMetadata({
 
   try {
     const product = await getProduct(slug);
+    if (!product) return { title: "Produit introuvable" };
 
     return {
       title: `${product.brand} ${product.title}`,

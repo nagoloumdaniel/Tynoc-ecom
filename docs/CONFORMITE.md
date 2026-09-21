@@ -37,7 +37,7 @@ pas de comptes : le brief demande la gestion des données, pas une authentificat
 | Retirer des articles | `cartService.removeItem`, retrait annulable | ✅ E2E « le retrait est annulable » |
 | Calculer le sous-total | `buildSummary` dans `cart.service.ts`, entiers en centimes, prix courant relu à chaque calcul | ✅ unitaires (sommes, lignes orphelines, arrondis impossibles) |
 | Ajouter / retirer de la wishlist | `wishlistService.toggle`, bouton cœur | ✅ E2E : l'état tient avant **et** après rechargement |
-| Empêcher les doublons | Clé `CART#<productId>` et `WISHLIST#<productId>` : un produit, un item. Écriture conditionnelle `attribute_not_exists(SK)` | ✅ E2E « le même produit ajouté deux fois incrémente au lieu de se dupliquer » |
+| Empêcher les doublons | Clé `CART#<productId>` et `WISH#<productId>` : un produit, un item. Écriture conditionnelle `attribute_not_exists(SK)` | ✅ E2E « le même produit ajouté deux fois incrémente au lieu de se dupliquer » |
 
 ## Expérience applicative
 
@@ -48,7 +48,7 @@ pas de comptes : le brief demande la gestion des données, pas une authentificat
 | États vides | `EmptyState`, avec une sortie sur chaque écran vide | ✅ E2E panier vide, favoris vides, recherche sans résultat |
 | Gestion des erreurs | `error.tsx`, `global-error.tsx`, `AppError` avec message public ou générique | ✅ `states.test.tsx`, `errors.test.ts` ; dégradation base arrêtée vérifiée à la main en P9 |
 | Validation des formulaires | Schémas Zod partagés client et serveur, erreurs par champ | 🟡 refus serveur testé (`user.service.test.ts`, `api.routes.test.ts`) ; le formulaire de profil n'a pas de test de composant |
-| 404 / page non trouvée | `src/app/not-found.tsx`, `notFound()` sur slug inconnu | ✅ `errors.test.ts`, `api.routes.test.ts` (404 structuré) |
+| 404 / page non trouvée | `src/app/not-found.tsx`, `notFound()` sur slug inconnu | ✅ `tests/e2e/not-found.spec.ts` : produit, catégorie et adresse inconnus, statut et `noindex` vérifiés |
 
 ## Stack imposée
 
@@ -79,8 +79,8 @@ pas de comptes : le brief demande la gestion des données, pas une authentificat
 | Valider les entrées importantes | Zod à chaque frontière, `strictObject`, taille de corps bornée, JSON exigé | ✅ `api.test.ts`, `api.routes.test.ts`, `security.spec.ts` (400, 403, 415) |
 | Variables d'environnement | `src/lib/env.ts`, validées au démarrage | ✅ aucune lecture brute de `process.env` ailleurs |
 | Aucun identifiant sensible en dur | `.env*` ignorés, `.env.example` vide de secrets | ✅ historique Git complet parcouru en P12.3 : aucun secret |
-| Commits significatifs | Conventional Commits, un commit par unité de travail | ⬜ nettoyage final en P12.5 |
-| Documentation claire | `docs/` : architecture, modèle de données, API, conformité | 🟡 README complet en P13 |
+| Commits significatifs | Conventional Commits, un commit par unité de travail | ✅ audit P12.5 : tous conformes, aucun « wip » |
+| Documentation claire | README en 8 sections, `docs/` : architecture, modèle de données, API, conformité | ✅ installation rejouée sur une copie vierge du dépôt, aucun lien mort |
 
 ## Rendu
 
@@ -88,16 +88,19 @@ pas de comptes : le brief demande la gestion des données, pas une authentificat
 | --- | --- |
 | Lien du dépôt GitHub | ✅ <https://github.com/nagoloumdaniel/Tynoc-ecom> |
 | Lien du projet en ligne | ⬜ P14, déploiement |
-| README : présentation, fonctionnalités, stack, structure, architecture, configuration DynamoDB, variables d'environnement, installation | 🟡 stack, architecture, variables et installation présents ; **fonctionnalités, structure du projet et configuration DynamoDB manquent**. Complété en P13 |
-| Captures d'écran | ⬜ `docs/screenshots/` est vide. P13 |
+| README : présentation, fonctionnalités, stack, structure, architecture, configuration DynamoDB, variables d'environnement, installation | ✅ les huit sections, dans cet ordre |
+| Captures d'écran | ✅ 16 captures du build de production, bureau, tablette et mobile, régénérables par `npm run screenshots` |
 
 ## Écarts ouverts
 
-Trois, tous planifiés, aucun dans le code :
+Un seul, planifié et hors code : **pas de déploiement**. P14, qui demande un compte AWS.
 
-1. **README incomplet** : trois sections exigées manquent. P13.
-2. **Aucune capture d'écran.** P13.
-3. **Pas de déploiement.** P14, qui demande un compte AWS.
+Deux réserves assumées, documentées là où elles s'appliquent :
 
-Et un point hors roadmap : la CI n'a jamais tourné sur l'ancien compte GitHub, dont les Actions
-étaient désactivées. Elle sera vérifiée au premier push sur le nouveau.
+- **Photographies de substitution.** Les images viennent de `picsum.photos` et n'ont aucun rapport
+  avec les produits. Elles démontrent le chargement d'images optimisé, pas le catalogue.
+- **Soft 404 sur les slugs inconnus** : statut 200 avec `noindex`, comportement documenté de Next
+  une fois la coquille statique partie. Un vrai 404 demanderait une lecture en base dans le proxy
+  à chaque vue produit.
+
+Et un point hors roadmap : la CI ne tourne pas, les Actions étant désactivées sur le compte GitHub.

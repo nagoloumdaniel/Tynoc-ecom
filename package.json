@@ -18,6 +18,7 @@
     "check:contrast": "tsx scripts/check-contrast.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "screenshots": "playwright test --config playwright.screenshots.config.ts",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:create-table": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/create-table.ts",

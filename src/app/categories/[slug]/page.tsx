@@ -5,7 +5,6 @@ import { EmptyState } from "@/components/feedback/states";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { ProductGrid } from "@/components/product/product-grid";
 import { BreadcrumbJsonLd, ItemListJsonLd } from "@/components/seo/json-ld";
-import { isAppError } from "@/lib/errors";
 import { getCategories, getCategory, searchCatalogue } from "@/server/catalogue";
 
 /**
@@ -25,12 +24,7 @@ export async function generateStaticParams() {
 }
 
 async function loadCategory(slug: string) {
-  try {
-    return await getCategory(slug);
-  } catch (error) {
-    if (isAppError(error) && error.code === "NOT_FOUND") notFound();
-    throw error;
-  }
+  return (await getCategory(slug)) ?? notFound();
 }
 
 export async function generateMetadata({
@@ -40,6 +34,8 @@ export async function generateMetadata({
 
   try {
     const category = await getCategory(slug);
+    if (!category) return { title: "Catégorie introuvable" };
+
     return { title: category.name, description: category.description };
   } catch {
     return { title: "Catégorie introuvable" };
