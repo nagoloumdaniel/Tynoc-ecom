@@ -103,6 +103,7 @@
      À utiliser en `z-[var(--z-header)]`. Aucun z-index littéral ailleurs. */
   --z-base: 0;
   --z-sticky: 20;
+  --z-popover: 40;
   --z-header: 50;
   --z-drawer: 60;
   --z-dialog: 70;
@@ -323,6 +324,26 @@
     @starting-style {
       opacity: 0;
       transform: scale(0.6);
+    }
+  }
+
+  /* Ouverture d'un menu déroulant.
+
+     Part du bord supérieur, là où se trouve le bouton qui l'a ouvert : un
+     menu qui grandirait depuis son centre semblerait surgir de nulle part.
+     Ouverture seulement, pas de sortie animée : on ferme un menu pour agir,
+     et le faire attendre à la fermeture retarderait l'action suivante. */
+  .animate-popover {
+    opacity: 1;
+    transform: none;
+    transform-origin: top;
+    transition:
+      opacity var(--duration-fast) var(--ease-snap),
+      transform var(--duration-fast) var(--ease-snap);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(-4px) scaleY(0.96);
     }
   }
 
