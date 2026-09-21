@@ -23,6 +23,13 @@ import type { StorefrontQuery } from "@/schemas/api";
  *
  * Les champs vides sont retirés avant la navigation, sinon l'adresse se
  * remplit de `&minPrice=&maxPrice=&sort=` qui ne filtrent rien.
+ *
+ * Les champs sont non contrôlés, initialisés depuis l'URL. Une navigation
+ * client ne remonte pas ce composant : sans clé, ils gardaient leur ancienne
+ * valeur après « Réinitialiser » ou un retour arrière, et le changement de
+ * filtre suivant renvoyait l'ancienne sélection (trouvé en revue, P12.1). La
+ * clé du formulaire dérive donc de la requête : une nouvelle adresse, un
+ * nouveau formulaire, aux valeurs justes.
  */
 export function FilterBar({
   categories,
@@ -51,6 +58,7 @@ export function FilterBar({
 
   return (
     <form
+      key={formKey(query)}
       ref={form}
       // Repli sans JavaScript : la soumission native vise la même page avec
       // les mêmes noms de champs.
@@ -156,6 +164,13 @@ export function FilterBar({
       ) : null}
     </form>
   );
+}
+
+/** Empreinte stable des filtres affichés, dans un ordre fixe. */
+function formKey(query: StorefrontQuery): string {
+  return [query.q, query.category, query.minPrice, query.maxPrice, query.sort, query.inStock]
+    .map((value) => value ?? "")
+    .join("|");
 }
 
 function hasActiveFilter(query: StorefrontQuery): boolean {
