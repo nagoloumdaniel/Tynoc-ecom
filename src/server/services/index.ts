@@ -1,3 +1,11 @@
+// Garde explicite : importer les services depuis un composant client doit
+// échouer au build, avec un message clair. Le lint ne peut pas le vérifier,
+// faute de savoir quel fichier porte `"use client"`. La garde existait déjà
+// par transitivité (repositories, puis client DynamoDB, puis `env`), mais une
+// garde qui dépend d'un détail d'implémentation trois niveaux plus bas finit
+// toujours par disparaître.
+import "server-only";
+
 import { cartRepository } from "../repositories/cart.repository";
 import { categoryRepository } from "../repositories/category.repository";
 import { productRepository } from "../repositories/product.repository";
