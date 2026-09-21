@@ -251,7 +251,7 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P6.1 | ✅ Choisir la stratégie composants | **Primitives maison, zéro bibliothèque de composants.** La difficulté réelle ne portait que sur le dialogue et le select : `<dialog>` + `showModal()` donne piège de focus, Échap et arrière-plan inerte nativement, et le `<select>` du système bat tout menu recréé sur mobile | `pick-ui-library`, `brainstorming` |
+| P6.1 | ✅ Choisir la stratégie composants | **Primitives maison, zéro bibliothèque de composants.** La difficulté réelle ne portait que sur le dialogue et le select : `<dialog>` + `showModal()` donne piège de focus, Échap et arrière-plan inerte nativement, et le `<select>` du système bat tout menu recréé sur mobile. **Révisé après P14** : menu déroulant et case à cocher personnalisés à la demande du propriétaire, le menu suivant le motif combobox du W3C (clavier, recherche par frappe, lecteur d'écran), couvert par 11 tests de composants et un test clavier en navigateur | `pick-ui-library`, `brainstorming` |
 | P6.2 | ✅ Primitives `ui/` : Button, ButtonLink, Input, Select, Field, Badge, Card, Skeleton, Dialog | API par variantes (`variant`/`size`), **jamais** une prolifération de props booléennes | `composition-patterns`, `emil-design-eng` |
 | P6.3 | ✅ Notifications via Sonner (ajout panier, erreurs) | Un seul `<Toaster>`, positionnement et thème cohérents | `ask-sonner` |
 | P6.4 | ✅ `layout/Header` : logo, nav catégories, recherche, compteurs panier/wishlist | Compteurs réactifs après action serveur | `composition-patterns`, `frontend-design` |

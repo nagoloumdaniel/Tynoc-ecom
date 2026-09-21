@@ -1,4 +1,18 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+/**
+ * Choisit une option dans un menu déroulant personnalisé, comme le ferait un
+ * visiteur : ouvrir, puis cliquer l'option par son libellé.
+ */
+async function choose(page: Page, label: string, option: string) {
+  await page.getByRole("combobox", { name: label, exact: true }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+
+/** Valeur portée par le champ caché du menu, celle qui part dans l'URL. */
+function filterValue(page: Page, name: string) {
+  return page.locator(`main form input[type="hidden"][name="${name}"]`);
+}
 
 /**
  * Parcours B : recherche puis filtrage (P11.7).
@@ -22,12 +36,28 @@ test.describe("recherche et filtres", () => {
   test("les filtres se retrouvent dans l'adresse", async ({ page }) => {
     await page.goto("/products");
 
-    await page.getByLabel("Catégorie", { exact: true }).selectOption("microphones");
+    await choose(page, "Catégorie", "Microphones");
     await expect(page).toHaveURL(/category=microphones/);
 
-    await page.getByLabel("Tri", { exact: true }).selectOption("price-asc");
+    await choose(page, "Tri", "Prix croissant");
     await expect(page).toHaveURL(/sort=price-asc/);
     await expect(page).toHaveURL(/category=microphones/);
+  });
+
+  test("le menu de tri se pilote au clavier jusqu'à l'adresse", async ({ page }) => {
+    // Le menu personnalisé doit rester utilisable sans souris : c'est la
+    // condition pour avoir remplacé le `select` natif.
+    await page.goto("/products");
+    const sort = page.getByRole("combobox", { name: "Tri", exact: true });
+
+    await sort.focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(sort).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+
+    await expect(page).toHaveURL(/sort=name/);
+    await expect(sort).toHaveText("Nom");
   });
 
   test("une adresse filtrée se recharge à l'identique", async ({ page }) => {
@@ -49,12 +79,15 @@ test.describe("recherche et filtres", () => {
 
     expect(afterReload).toEqual(order);
     expect(order.length).toBeGreaterThan(1);
-    await expect(page.getByLabel("Tri", { exact: true })).toHaveValue("price-desc");
+    await expect(filterValue(page, "sort")).toHaveValue("price-desc");
+    await expect(page.getByRole("combobox", { name: "Tri", exact: true })).toHaveText(
+      "Prix décroissant",
+    );
   });
 
   test("le bouton retour annule un filtre", async ({ page }) => {
     await page.goto("/products");
-    await page.getByLabel("Catégorie", { exact: true }).selectOption("cables");
+    await choose(page, "Catégorie", "Câblage");
     await expect(page).toHaveURL(/category=cables/);
 
     await page.goBack();
@@ -67,7 +100,7 @@ test.describe("recherche et filtres", () => {
     // changement de filtre suivant renvoyait l'ancienne sélection (trouvé en
     // revue, P12.1).
     await page.goto("/products?category=casques");
-    const category = page.getByLabel("Catégorie", { exact: true });
+    const category = filterValue(page, "category");
     await expect(category).toHaveValue("casques");
 
     await page.getByRole("button", { name: "Réinitialiser" }).click();

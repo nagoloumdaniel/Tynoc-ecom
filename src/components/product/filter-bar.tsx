@@ -4,18 +4,24 @@ import { useRouter } from "next/navigation";
 import { useRef, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/field";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dropdown } from "@/components/ui/dropdown";
+import { Input } from "@/components/ui/field";
 import type { Category } from "@/schemas/category";
 import type { StorefrontQuery } from "@/schemas/api";
 
 /**
  * Barre de filtres du listing (P7.3).
  *
- * C'est un vrai formulaire `GET` pointant sur `/products`. Sans JavaScript, il
- * fonctionne quand même : le navigateur construit la query string lui-même et
- * la page se recharge filtrée. Le JavaScript n'ajoute que le confort, à savoir
- * l'application immédiate au changement d'un champ et la navigation sans
- * rechargement complet.
+ * C'est un vrai formulaire `GET` pointant sur `/products`, avec les mêmes noms
+ * de champs que la query string. Les menus sont des composants personnalisés
+ * (`Dropdown`) : chacun porte sa valeur dans un champ caché, donc le formulaire
+ * se lit et se soumet comme avec des `select` natifs.
+ *
+ * Contrepartie, dite plutôt que masquée : sans JavaScript, ces menus ne
+ * s'ouvrent pas. Elle ne coûte rien en pratique, la barre elle-même arrivant
+ * en flux et restant invisible sans script (mesuré en P11). Seule la case à
+ * cocher garde l'élément natif sous son dessin.
  *
  * L'état vit **entièrement dans l'URL**, jamais dans un état React. Une
  * sélection est donc partageable, rechargeable, et le bouton « retour » du
@@ -71,20 +77,19 @@ export function FilterBar({
       {query.q ? <input type="hidden" name="q" value={query.q} /> : null}
 
       <FilterField label="Catégorie" htmlFor="filter-category">
-        <Select
+        <Dropdown
           id="filter-category"
           name="category"
           size="sm"
+          aria-labelledby="filter-category-label"
+          className="min-w-40"
           defaultValue={query.category ?? ""}
-          onChange={() => apply()}
-        >
-          <option value="">Toutes</option>
-          {categories.map((category) => (
-            <option key={category.slug} value={category.slug}>
-              {category.name}
-            </option>
-          ))}
-        </Select>
+          options={[
+            { value: "", label: "Toutes" },
+            ...categories.map((category) => ({ value: category.slug, label: category.name })),
+          ]}
+          onValueChange={() => apply()}
+        />
       </FilterField>
 
       <FilterField label="Prix min." htmlFor="filter-min">
@@ -118,31 +123,26 @@ export function FilterBar({
       </FilterField>
 
       <FilterField label="Tri" htmlFor="filter-sort">
-        <Select
+        <Dropdown
           id="filter-sort"
           name="sort"
           size="sm"
+          aria-labelledby="filter-sort-label"
+          className="min-w-40"
           defaultValue={query.sort ?? "newest"}
-          onChange={() => apply()}
-        >
-          <option value="newest">Nouveautés</option>
-          <option value="price-asc">Prix croissant</option>
-          <option value="price-desc">Prix décroissant</option>
-          <option value="name">Nom</option>
-        </Select>
+          options={SORT_OPTIONS}
+          onValueChange={() => apply()}
+        />
       </FilterField>
 
-      <label className="text-ink flex h-8 cursor-pointer items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="inStock"
-          value="true"
-          defaultChecked={query.inStock === "true"}
-          onChange={() => apply()}
-          className="accent-signal size-4"
-        />
+      <Checkbox
+        name="inStock"
+        value="true"
+        defaultChecked={query.inStock === "true"}
+        onChange={() => apply()}
+      >
         Disponibles seulement
-      </label>
+      </Checkbox>
 
       {/* Visible sans JavaScript, inutile avec : les champs s'appliquent déjà
           au changement. Le garder coûte peu et évite un cul-de-sac. */}
@@ -173,6 +173,13 @@ function formKey(query: StorefrontQuery): string {
     .join("|");
 }
 
+const SORT_OPTIONS = [
+  { value: "newest", label: "Nouveautés" },
+  { value: "price-asc", label: "Prix croissant" },
+  { value: "price-desc", label: "Prix décroissant" },
+  { value: "name", label: "Nom" },
+];
+
 function hasActiveFilter(query: StorefrontQuery): boolean {
   return Boolean(query.category || query.minPrice || query.maxPrice || query.inStock || query.sort);
 }
@@ -188,7 +195,7 @@ function FilterField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={htmlFor} className="text-ink-muted text-xs">
+      <label id={`${htmlFor}-label`} htmlFor={htmlFor} className="text-ink-muted text-xs">
         {label}
       </label>
       {children}

@@ -68,4 +68,12 @@ if (typeof window !== "undefined") {
   }
 }
 
+/**
+ * `scrollIntoView` n'existe pas dans jsdom. Le menu déroulant l'appelle pour
+ * garder visible l'option active ; ici, il n'y a rien à faire défiler.
+ */
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function scrollIntoView() {};
+}
+
 expect.extend({});

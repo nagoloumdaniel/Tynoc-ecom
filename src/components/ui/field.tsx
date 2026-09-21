@@ -6,14 +6,13 @@ import { cn } from "@/lib/cn";
 /**
  * Champs de saisie (P6.2).
  *
- * `Input` et `Select` partagent exactement la même enveloppe visuelle : un
- * filtre de prix et un filtre de tri posés côte à côte doivent avoir la même
- * hauteur, le même rayon et le même anneau de focus, sinon la barre de filtres
- * paraît bricolée.
+ * `Input` partage exactement l'enveloppe visuelle du menu déroulant
+ * (`dropdown.tsx`) : un filtre de prix et un filtre de tri posés côte à côte
+ * doivent avoir la même hauteur, le même rayon et le même anneau de focus,
+ * sinon la barre de filtres paraît bricolée.
  *
- * Le `select` est l'élément **natif**, délibérément. Sur mobile, le sélecteur
- * du système est plus rapide et plus accessible que n'importe quel menu
- * reconstruit, et il ne coûte pas une ligne de JavaScript.
+ * Il y avait ici un `Select` natif. Il a été remplacé par un menu personnalisé
+ * à la demande du propriétaire du projet, et retiré une fois sans usage.
  */
 const control = cva(
   [
@@ -46,18 +45,6 @@ export function Input({ className, size, invalid, ...props }: InputProps) {
   return (
     <input
       className={cn(control({ size, invalid }), className)}
-      aria-invalid={invalid === true ? true : undefined}
-      {...props}
-    />
-  );
-}
-
-export type SelectProps = Omit<ComponentProps<"select">, "size"> & ControlVariants;
-
-export function Select({ className, size, invalid, ...props }: SelectProps) {
-  return (
-    <select
-      className={cn(control({ size, invalid }), "cursor-pointer pr-8", className)}
       aria-invalid={invalid === true ? true : undefined}
       {...props}
     />
