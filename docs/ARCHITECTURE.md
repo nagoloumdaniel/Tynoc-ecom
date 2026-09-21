@@ -138,13 +138,31 @@ app/ → server/actions/ + app/api/ → server/services/ → server/repositories
 
 | Couche | Connaît | Ne connaît jamais |
 | --- | --- | --- |
-| `app/`, `components/` | Types du domaine, Server Actions | `PK`/`SK`, le SDK AWS, un repository |
+| Composants serveur (`app/`, `components/`) | Types du domaine, services en **lecture**, Server Actions | `PK`/`SK`, le SDK AWS, un repository |
+| Composants client (`"use client"`) | Types du domaine, Server Actions | Tout le reste de `server/` |
 | `server/actions/`, `app/api/` | HTTP, `FormData`, cookies, services | DynamoDB, `PK`/`SK` |
 | `server/services/` | Types du domaine, repositories, `AppError` | React, HTTP, `Request`, `PK`/`SK` |
 | `server/repositories/` | Le SDK, les clés, les mappers | Les règles métier |
 
 Le sens des flèches ne s'inverse jamais. C'est le critère d'architecture le plus visible à
-l'évaluation ; toute violation est traitée comme un bug (contrôle explicite en P12.4).
+l'évaluation ; toute violation est traitée comme un bug.
+
+**Lecture de la flèche `app/ →`.** Un Server Component lit ses données en appelant un service,
+comme le montre le schéma de flux ci-dessus. Il ne passe **pas** par une route API : appeler sa
+propre API depuis le serveur ajoute un aller-retour HTTP sans rien isoler de plus, et la
+documentation de Next le déconseille explicitement. Les Server Actions et les routes API sont
+les points d'entrée des **écritures** et des clients externes. Dans les deux cas, la frontière qui
+compte tient : rien au-dessus des services ne voit un repository ni une clé.
+
+**Contrôle automatique (P12.4).** La règle n'est pas vérifiée à la main :
+
+| Garde | Où | Ce qu'elle bloque |
+| --- | --- | --- |
+| `no-restricted-imports` | `eslint.config.mjs`, un bloc par couche | Interface vers repositories, SDK ou clés ; service vers Next, React, repositories, session ; repository vers services ou actions ; socle partagé vers toute couche |
+| `import "server-only"` | `services/index.ts` | Un composant client qui importerait un service : échec au build |
+
+Les deux tournent dans `npm run verify` et dans la CI. Une violation est une erreur, pas une
+remarque de revue.
 
 ### Deux conséquences anticipées
 

@@ -1,10 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { randomUUID } from "node:crypto";
+
+import { errorToApiPayload } from "@/lib/api";
 import { env, isProduction } from "@/lib/env";
+import { ForbiddenError } from "@/lib/errors";
+import { isCrossOriginRequest } from "@/lib/request-origin";
 import {
   newSessionId,
   sessionCookieName,
   sessionCookieOptions,
+  shouldRefreshSession,
   signSession,
   verifySession,
 } from "@/lib/session";
@@ -34,14 +40,38 @@ import {
  * de signature qu'ailleurs dans l'application.
  */
 export function proxy(request: NextRequest): NextResponse {
+  // Écriture d'API venue d'une autre origine : refusée avant tout traitement,
+  // et avant d'attribuer une session qui ne servirait à rien (P12.3). Les
+  // Server Actions ont leur propre contrôle, fourni par Next.
+  if (
+    request.nextUrl.pathname.startsWith("/api/") &&
+    shouldRefreshSession(request.method) &&
+    isCrossOriginRequest({
+      origin: request.headers.get("origin"),
+      secFetchSite: request.headers.get("sec-fetch-site"),
+      host: request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
+    })
+  ) {
+    const { status, body } = errorToApiPayload(
+      new ForbiddenError("Requête refusée : origine non autorisée."),
+      randomUUID(),
+    );
+    return NextResponse.json(body, { status });
+  }
+
   const cookieName = sessionCookieName(isProduction);
   const existing = request.cookies.get(cookieName)?.value;
 
-  // Un cookie valide est laissé tel quel : le réécrire à chaque requête
-  // repousserait son expiration sans rien apporter, et coûterait un en-tête
-  // `Set-Cookie` sur toutes les réponses du site.
-  if (verifySession(env.SESSION_SECRET, existing) !== null) {
-    return NextResponse.next();
+  if (existing !== undefined && verifySession(env.SESSION_SECRET, existing) !== null) {
+    // Un cookie valide n'est réécrit que sur une écriture, pour repousser son
+    // expiration au même rythme que le TTL des données en base. En lecture,
+    // il est laissé tel quel : un `Set-Cookie` sur chaque réponse du site ne
+    // rapporterait rien.
+    if (!shouldRefreshSession(request.method)) return NextResponse.next();
+
+    const response = NextResponse.next();
+    response.cookies.set(cookieName, existing, sessionCookieOptions(isProduction));
+    return response;
   }
 
   // Couvre les trois cas d'un coup : aucun cookie, cookie expiré, cookie

@@ -36,9 +36,6 @@ export const productQuerySchema = z.strictObject({
 
 export type ProductQuery = z.infer<typeof productQuerySchema>;
 
-/** Aucun paramètre attendu : en accepter serait laisser croire qu'ils agissent. */
-export const emptyQuerySchema = z.strictObject({});
-
 /**
  * Paramètres d'URL du **listing public**, distincts de ceux de l'API.
  *

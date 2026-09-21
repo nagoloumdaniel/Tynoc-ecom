@@ -41,7 +41,7 @@ export function ProductJsonLd({
   product: Product;
   availability: keyof typeof AVAILABILITY;
 }) {
-  const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const base = env.NEXT_PUBLIC_SITE_URL;
 
   return (
     <JsonLd
@@ -68,7 +68,7 @@ export function ProductJsonLd({
 }
 
 export function BreadcrumbJsonLd({ items }: { items: { name: string; path: string }[] }) {
-  const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const base = env.NEXT_PUBLIC_SITE_URL;
 
   return (
     <JsonLd
@@ -88,7 +88,7 @@ export function BreadcrumbJsonLd({ items }: { items: { name: string; path: strin
 
 /** Liste de produits d'une page de catégorie ou de listing. */
 export function ItemListJsonLd({ products }: { products: Product[] }) {
-  const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const base = env.NEXT_PUBLIC_SITE_URL;
 
   return (
     <JsonLd

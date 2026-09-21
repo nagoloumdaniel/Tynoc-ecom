@@ -82,5 +82,3 @@ export type ButtonLinkProps = ComponentProps<typeof Link> & VariantProps<typeof 
 export function ButtonLink({ className, variant, size, block, ...props }: ButtonLinkProps) {
   return <Link className={cn(button({ variant, size, block }), className)} {...props} />;
 }
-
-export { button as buttonVariants };

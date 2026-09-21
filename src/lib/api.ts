@@ -4,7 +4,12 @@ import { unstable_rethrow } from "next/navigation";
 import { NextResponse } from "next/server";
 import type { ZodType } from "zod";
 
-import { isAppError, toAppError, ValidationError, type AppErrorCode } from "./errors";
+import {
+  toAppError,
+  UnsupportedMediaTypeError,
+  ValidationError,
+  type AppErrorCode,
+} from "./errors";
 
 /**
  * Enveloppe d'API, traitement centralisé des erreurs et garde-fous d'entrée
@@ -171,11 +176,22 @@ export function parseQuery<T>(schema: ZodType<T>, url: URL): T {
 /**
  * Lit et valide un corps JSON.
  *
- * Trois contrôles, dans cet ordre, et l'ordre compte : taille annoncée, taille
- * réelle, puis forme. Valider avant d'avoir borné la taille reviendrait à
- * charger dix mégaoctets en mémoire avant de les refuser.
+ * Quatre contrôles, dans cet ordre, et l'ordre compte : type de contenu,
+ * taille annoncée, taille réelle, puis forme. Valider avant d'avoir borné la
+ * taille reviendrait à charger dix mégaoctets en mémoire avant de les refuser.
+ *
+ * Le type de contenu est exigé (P12.3). Un navigateur peut envoyer un corps
+ * `text/plain` vers une autre origine sans requête préalable : c'est une
+ * « requête simple ». Exiger `application/json` impose au contraire un
+ * contrôle CORS préalable, que notre API ne satisfait pour aucune origine
+ * étrangère. Le JSON n'était pas lu autrement, donc rien ne se perd.
  */
 export async function readJsonBody<T>(request: Request, schema: ZodType<T>): Promise<T> {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.split(";")[0]?.trim().toLowerCase() !== "application/json") {
+    throw new UnsupportedMediaTypeError("Corps de requête attendu en application/json.");
+  }
+
   const declared = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(declared) && declared > MAX_REQUEST_BODY_BYTES) {
     throw new ValidationError("Corps de requête trop volumineux.");
@@ -202,6 +218,3 @@ export async function readJsonBody<T>(request: Request, schema: ZodType<T>): Pro
 
   return parsed.data;
 }
-
-/** Vrai quand l'erreur vient du domaine, utile aux Server Actions. */
-export { isAppError };

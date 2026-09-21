@@ -75,14 +75,3 @@ export async function removeFromCartAction(input: unknown): Promise<ActionResult
     return summary;
   });
 }
-
-export async function clearCartAction(): Promise<ActionResult<CartSummary>> {
-  return runAction("clearCartAction", async () => {
-    const userId = await getSessionUserId();
-
-    const summary = await cartService.clear(userId);
-    revalidateCart();
-
-    return summary;
-  });
-}

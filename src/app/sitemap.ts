@@ -14,7 +14,7 @@ import { getCategories, searchCatalogue } from "@/server/catalogue";
  * l'indexation n'aurait aucun sens, et ils portent déjà `noindex`.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const base = env.NEXT_PUBLIC_SITE_URL;
 
   const [categories, catalogue] = await Promise.all([
     getCategories(),

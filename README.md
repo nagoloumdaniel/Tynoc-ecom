@@ -14,6 +14,8 @@ Application e-commerce full-stack construite avec Next.js, TypeScript et AWS Dyn
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Périmètre, direction artistique, états d'écran, parcours, couches |
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | Single-table design, 11 patterns d'accès, opérations CRUD |
 | [docs/API.md](docs/API.md) | Endpoints HTTP, enveloppe de réponse, Server Actions |
+| [docs/CONFORMITE.md](docs/CONFORMITE.md) | Chaque puce du brief pointée vers son implémentation et sa preuve |
+| [infra/README.md](infra/README.md) | Politiques IAM au moindre privilège |
 | [AGENTS.md](AGENTS.md) | Conventions de code et règle de dépendance entre couches |
 
 ## Stack technique
@@ -44,7 +46,7 @@ app/ → server/actions/ + app/api/ → server/services/ → server/repositories
 ## Installation
 
 ```bash
-git clone https://github.com/Nagoloum/Tynoc-ecom.git
+git clone https://github.com/nagoloumdaniel/Tynoc-ecom.git
 cd Tynoc-ecom
 npm install
 cp .env.example .env.local   # puis renseigner les valeurs
@@ -118,4 +120,5 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P9 : États, résilience, a11y | ✅ Terminée |
 | P10 : Performance & SEO | ✅ Terminée |
 | P11 : Tests | ✅ Terminée |
-| P12 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P12 : Qualité, revue & sécurité | ✅ Terminée |
+| P13 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |

@@ -36,10 +36,10 @@ export const CART_SK_PREFIX = "CART#" as const;
 export const WISHLIST_SK_PREFIX = "WISH#" as const;
 
 /** Clé de tri du profil utilisateur, seul item non préfixé de sa partition. */
-export const USER_PROFILE_SK = "PROFILE" as const;
+const USER_PROFILE_SK = "PROFILE" as const;
 
 /** Clé de tri de l'item principal d'un produit. */
-export const PRODUCT_META_SK = "META" as const;
+const PRODUCT_META_SK = "META" as const;
 
 /**
  * Largeur du montant dans une clé de tri.

@@ -74,7 +74,7 @@ export const availabilitySchema = z.enum(["in-stock", "low-stock", "out-of-stock
 export type Availability = z.infer<typeof availabilitySchema>;
 
 /** Seuil à partir duquel un produit est signalé comme bientôt épuisé. */
-export const LOW_STOCK_THRESHOLD = 5;
+const LOW_STOCK_THRESHOLD = 5;
 
 export function availabilityOf(stock: number): Availability {
   if (stock <= 0) return "out-of-stock";

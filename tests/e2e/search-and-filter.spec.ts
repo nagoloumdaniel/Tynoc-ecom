@@ -53,6 +53,24 @@ test.describe("recherche et filtres", () => {
     await expect(page).not.toHaveURL(/category=cables/);
   });
 
+  test("les champs suivent l'adresse après réinitialisation et retour", async ({ page }) => {
+    // Les champs sont non contrôlés, initialisés depuis l'URL. Sans remontage
+    // à chaque changement d'adresse, ils gardaient l'ancienne valeur, et le
+    // changement de filtre suivant renvoyait l'ancienne sélection (trouvé en
+    // revue, P12.1).
+    await page.goto("/products?category=casques");
+    const category = page.getByLabel("Catégorie", { exact: true });
+    await expect(category).toHaveValue("casques");
+
+    await page.getByRole("button", { name: "Réinitialiser" }).click();
+    await expect(page).toHaveURL(/\/products$/);
+    await expect(category).toHaveValue("");
+
+    await page.goBack();
+    await expect(page).toHaveURL(/category=casques/);
+    await expect(category).toHaveValue("casques");
+  });
+
   test("le tri par prix ordonne réellement les résultats", async ({ page }) => {
     await page.goto("/products?sort=price-asc&category=casques");
 
