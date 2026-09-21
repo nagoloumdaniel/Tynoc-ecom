@@ -37,7 +37,7 @@ pas de comptes : le brief demande la gestion des données, pas une authentificat
 | Retirer des articles | `cartService.removeItem`, retrait annulable | ✅ E2E « le retrait est annulable » |
 | Calculer le sous-total | `buildSummary` dans `cart.service.ts`, entiers en centimes, prix courant relu à chaque calcul | ✅ unitaires (sommes, lignes orphelines, arrondis impossibles) |
 | Ajouter / retirer de la wishlist | `wishlistService.toggle`, bouton cœur | ✅ E2E : l'état tient avant **et** après rechargement |
-| Empêcher les doublons | Clé `CART#<productId>` et `WISHLIST#<productId>` : un produit, un item. Écriture conditionnelle `attribute_not_exists(SK)` | ✅ E2E « le même produit ajouté deux fois incrémente au lieu de se dupliquer » |
+| Empêcher les doublons | Clé `CART#<productId>` et `WISH#<productId>` : un produit, un item. Écriture conditionnelle `attribute_not_exists(SK)` | ✅ E2E « le même produit ajouté deux fois incrémente au lieu de se dupliquer » |
 
 ## Expérience applicative
 
