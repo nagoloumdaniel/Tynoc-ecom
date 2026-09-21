@@ -397,12 +397,12 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P14.1 | Compte AWS, table DynamoDB de production + utilisateur IAM dédié, politique au moindre privilège (ex-P2.5) | Séparée de la table de dev ; jamais `AdministratorAccess` ; clés en variables Vercel uniquement | `anthropic-skills:frontend-security-coder`, `/security-review` |
-| P14.2 | Déploiement Vercel, variables d'environnement configurées | Build de production vert | `anthropic-skills:vercel-react-best-practices` |
-| P14.3 | Seed de la base de production | Le site live affiche un vrai catalogue | `lean-build` |
-| P14.4 | Vérification du site live : les 3 parcours critiques en conditions réelles | Testé sur mobile physique et desktop | `/run`, `verify-and-stop` |
+| P14.1 | ✅ Compte AWS, table DynamoDB de production + utilisateur IAM dédié, politique au moindre privilège (ex-P2.5) | Séparée de la table de dev ; jamais `AdministratorAccess` ; clés en variables Vercel uniquement | `anthropic-skills:frontend-security-coder`, `/security-review` |
+| P14.2 | ✅ Déploiement Vercel, fonctions à Paris (`cdg1`) à côté de la table | Build de production vert | `anthropic-skills:vercel-react-best-practices` |
+| P14.3 | ✅ Seed de la base de production : 8 catégories, 47 produits | Le site live affiche un vrai catalogue | `lean-build` |
+| P14.4 | ✅ Vérification du site live : **la suite E2E complète (70 tests)**, pas seulement les 3 parcours. Reste le test sur mobile physique, que seul l'utilisateur peut faire | Testé sur mobile physique et desktop | `/run`, `verify-and-stop` |
 | P14.5 | ✅ Faites en P13, régénérables par `npm run screenshots`. Captures : accueil, listing, filtres, produit, panier rempli, panier vide, wishlist, 404, vue mobile | Rangées dans `docs/screenshots/`, référencées dans le README | `image` |
-| P14.6 | Finalisation du dépôt : description, topics, README affiché correctement sur GitHub | Page d'accueil du repo présentable | `finishing-a-development-branch` |
+| P14.6 | ✅ Finalisation du dépôt : description, topics, README affiché correctement sur GitHub | Page d'accueil du repo présentable | `finishing-a-development-branch` |
 | P14.7 | Soumission : lien GitHub + lien live + README + captures | Les 4 éléments du brief fournis | `verification-before-completion` |
 
 ---
@@ -666,38 +666,28 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P14, déploiement et soumission.** P13 est close ; le code et la documentation sont complets.
+**P14.7, la soumission**, puis les extensions si le temps le permet. Le site est en ligne :
+<https://tynoc-ecom.vercel.app>.
 
-### Ce que P13 a trouvé
+### Ce que le déploiement a vérifié
 
-Produire les captures d'écran a fait apparaître **un défaut réel que 350 tests laissaient
-passer** : un produit ou une catégorie inexistants affichaient « La connexion à la base de
-données a échoué ». Le `NotFoundError` levé dans une fonction `"use cache"` perdait sa classe en
-franchissant la frontière du cache, qui sérialise ce qui en sort ; la page ne le reconnaissait
-plus et le traitait comme une panne. Aucun test ne pouvait le voir : unitaires et intégration
-n'exécutent pas le cache de Next, et aucun test E2E ne visitait une adresse inexistante. Les
-lectures en cache renvoient désormais `null` pour une absence, et `tests/e2e/not-found.spec.ts`
-couvre les trois cas.
+| Élément | Résultat |
+| --- | --- |
+| Table de production | `tynoc-ecom-prod`, Paris, deux index et TTL, créée par l'identité `tynoc-setup` |
+| Application | Identité `tynoc-app`, lecture et écriture des items seulement ; le build réussi prouve qu'elle suffit |
+| Hébergement | Vercel, fonctions en `cdg1` pour rester à côté de la base |
+| Parcours | La suite E2E complète contre le site en ligne, deux fois de suite, 70 sur 70 |
 
-Rejouer l'installation sur une copie vierge, plutôt que la relire, a trouvé le second : le README
-invitait à mettre « n'importe quelle valeur » dans les clés AWS locales, que la validation de
-`env.ts` refuse sous 16 et 32 caractères.
+La suite contre le site réel a trouvé **trois défauts dans les tests, aucun dans l'application** :
+trois lectures qui couraient contre une écriture ou un contenu en flux. En local, la latence
+quasi nulle les laissait passer ; sur le vrai réseau, non. Deux attendaient une notification qui
+ne prouvait rien (celle du premier ajout était encore affichée pendant le second), la troisième
+lisait une grille avant son arrivée.
 
-### Ce que P14 demande de toi
+### Ce qui reste de ton côté
 
-P14 ne peut pas se faire sans deux comptes à ton nom :
-
-1. **Un compte AWS**, pour la table de production et l'utilisateur IAM. Les politiques sont
-   prêtes dans `infra/`.
-2. **Un compte Vercel** relié au dépôt GitHub.
-
-Tout le reste est prêt : la configuration de build, les variables documentées, le seed
-idempotent. P14.5 (captures) est déjà faite.
-
-### Une réserve visible à trancher avant la soumission
-
-Les photographies de substitution viennent de `picsum.photos` et n'ont aucun rapport avec les
-produits : un ananas illustre une catégorie, des oignons un casque. Elles prouvent le chargement
-d'images optimisé, pas le catalogue, et c'est la première chose qu'un évaluateur voit sur les
-captures. Deux options : des visuels neutres générés localement (une illustration par famille,
-sans droits à gérer), ou de vraies photos produit sous licence libre.
+1. **Tester sur un téléphone réel** : ouvrir le site, ajouter au panier, recharger.
+2. **Nettoyer l'identité de mise en place** : désactiver la clé d'accès de `tynoc-setup` dans IAM,
+   et supprimer `.env.aws.local`.
+3. **Soumettre** sur l'Internship Dashboard : le lien du dépôt, le lien du site, le README et les
+   captures, qui sont dans le README.

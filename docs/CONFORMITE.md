@@ -87,13 +87,13 @@ pas de comptes : le brief demande la gestion des données, pas une authentificat
 | Livrable | État |
 | --- | --- |
 | Lien du dépôt GitHub | ✅ <https://github.com/nagoloumdaniel/Tynoc-ecom> |
-| Lien du projet en ligne | ⬜ P14, déploiement |
+| Lien du projet en ligne | ✅ <https://tynoc-ecom.vercel.app>, la suite E2E complète y passe |
 | README : présentation, fonctionnalités, stack, structure, architecture, configuration DynamoDB, variables d'environnement, installation | ✅ les huit sections, dans cet ordre |
 | Captures d'écran | ✅ 16 captures du build de production, bureau, tablette et mobile, régénérables par `npm run screenshots` |
 
 ## Écarts ouverts
 
-Un seul, planifié et hors code : **pas de déploiement**. P14, qui demande un compte AWS.
+Aucun : les quatre livrables du rendu sont fournis.
 
 Deux réserves assumées, documentées là où elles s'appliquent :
 
