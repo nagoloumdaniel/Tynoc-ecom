@@ -45,7 +45,12 @@ export default function AppError({
     <div className="mx-auto w-full max-w-2xl px-4 py-24 md:px-6">
       <ErrorState
         title="Cette page n'a pas pu se charger."
-        description="La connexion à la base de données a échoué. Le problème vient de notre côté, pas de votre navigation."
+        // Neutre sur la cause, par honnêteté : en production, cette frontière ne
+        // reçoit qu'un `digest`, jamais la nature de l'erreur. Annoncer une
+        // panne de base de données, comme avant P13, c'était affirmer ce
+        // qu'elle ne pouvait pas savoir, et un produit introuvable s'était
+        // affiché ainsi.
+        description="Un incident est survenu de notre côté, pas de votre navigation. Réessayez dans un instant."
         onRetry={retry}
       />
 
