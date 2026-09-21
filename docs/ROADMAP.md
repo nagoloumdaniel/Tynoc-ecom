@@ -364,12 +364,12 @@ produit ne peut pas exister deux fois dans un panier, il ne peut qu'incrémenter
 
 | ID | Tâche | Livrable / critère d'acceptation | Skills |
 | --- | --- | --- | --- |
-| P12.1 | Revue complète du diff, phase par phase | Findings traités ou explicitement écartés | `/code-review`, `caveman-review`, `receiving-code-review` |
-| P12.2 | Passe de simplification : duplication, abstractions inutiles, code mort | Moins de code, même comportement | `/simplify`, `safe-refactor` |
-| P12.3 | Revue de sécurité : secrets, validation des entrées, IAM, exposition d'erreurs, en-têtes | Aucun secret dans l'historique ; IAM au moindre privilège | `/security-review`, `anthropic-skills:frontend-security-coder` |
-| P12.4 | Vérifier le respect de la règle de dépendance entre couches | Aucun import de repository depuis un composant | `safe-refactor`, `composition-patterns` |
-| P12.5 | Nettoyage de l'historique Git : messages conventionnels, pas de commit « wip » | `git log --oneline` lisible de bout en bout | `caveman-commit`, `finishing-a-development-branch` |
-| P12.6 | Vérification finale contre le brief, ligne par ligne | Chaque puce de `BRIEF.md` pointée vers son implémentation | `verification-before-completion`, `verify-and-stop` |
+| P12.1 | ✅ Revue complète du code, du premier commit à aujourd'hui | 5 défauts trouvés, **5 reproduits puis corrigés**, chacun avec son test : cœur des favoris qui se vidait, filtres désynchronisés de l'URL, cookie de session non renouvelé, suppressions par lot sans rejeu (panier et effacement RGPD) | `/code-review`, `caveman-review`, `receiving-code-review` |
+| P12.2 | ✅ Passe de simplification | Code mort retiré après vérification manuelle de chaque signalement de `knip` (dont une Server Action inutilisée, donc de la surface d'attaque). Normalisation de l'URL du site ramenée de 5 endroits à 1. Aucun fichier mort | `/simplify`, `safe-refactor` |
+| P12.3 | ✅ Revue de sécurité | Historique complet parcouru : aucun secret. `npm audit` : 0 vulnérabilité. Ajoutés : en-têtes de sécurité avec une CSP compatible avec le prérendu, refus des écritures d'API d'une autre origine (403), JSON exigé (415). Politiques IAM au moindre privilège dans `infra/` | `/security-review`, `anthropic-skills:frontend-security-coder` |
+| P12.4 | ✅ Règle de dépendance entre couches | Aucune violation, et désormais **vérifiée par ESLint** à chaque commit, plus `server-only` sur la racine des services | `safe-refactor`, `composition-patterns` |
+| P12.5 | ✅ Audit de l'historique | 68 commits, tous conformes aux Conventional Commits, aucun « wip ». Aucune réécriture nécessaire. Reste un tiret cadratin dans le corps du commit initial, antérieur à la règle : l'ôter demanderait de réécrire tout l'historique publié | `caveman-commit`, `finishing-a-development-branch` |
+| P12.6 | ✅ Vérification contre le brief | `docs/CONFORMITE.md` : chaque puce pointée vers son code et sa preuve. 3 écarts ouverts, tous hors code : README incomplet et captures (P13), déploiement (P14) | `verification-before-completion`, `verify-and-stop` |
 
 ---
 
@@ -666,78 +666,41 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──► P5 ──┐
 
 ## Prochaine action
 
-**P12.1 → P12.6, qualité, revue et sécurité.** P11 est close, et P9.5, P10.7 et P8.10 avec elle :
-il ne reste aucune tâche en suspens derrière.
+**P13.1 → P13.9, la documentation.** P12 est close.
 
-### Ce que la phase de tests a réellement trouvé
+### Ce que P12 a changé
 
-La suite de bout en bout a échoué dix fois avant d'être verte. Le tri compte plus que le compte,
-parce qu'il dit ce que les tests ont servi à trouver.
+La revue a trouvé **cinq défauts réels** dans du code que 350 tests laissaient passer. Chacun a été
+reproduit avant d'être corrigé, et chaque correctif a son test, écrit rouge d'abord quand c'était
+possible :
 
-**Deux défauts réels de l'application.**
-
-| Défaut | Correction |
+| Défaut | Pourquoi les tests ne le voyaient pas |
 | --- | --- |
-| « Il ne reste que 1 **exemplaires** » : l'accord du pluriel n'était pas fait dans le message de refus du panier | Singulier conditionnel, aligné sur le reste de l'interface |
-| Quitter le panier moins de 450 ms après un clic sur « plus » **perdait la modification en silence** : le minuteur d'anti-rafale était annulé au démontage | Le démontage envoie désormais la valeur en attente au lieu de l'abandonner |
+| Le cœur des favoris se vidait juste après un ajout réussi | Le test E2E ne regardait qu'après rechargement |
+| Les filtres gardaient leurs anciennes valeurs après un retour arrière | Aucun test ne naviguait en arrière puis modifiait un champ |
+| Le cookie de session mourait au 90e jour, données vivantes | Un délai de 90 jours ne se teste pas en E2E ; la règle est désormais une fonction pure testée |
+| Vider le panier ou effacer ses données pouvait annoncer un succès partiel | DynamoDB Local ne limite jamais le débit : seul un faux client reproduit le refus |
 
-Le second mérite un mot. Le délai de 450 ms existe pour qu'un passage de 1 à 6 en cinq clics ne
-produise qu'un appel. Annuler l'envoi au démontage était le choix par défaut, et il était faux : au
-moment du clic, l'intention de l'utilisateur est déjà exprimée. Reste une fenêtre que rien ne peut
-couvrir depuis un composant, celle d'un rechargement complet qui interrompt la requête en vol.
-
-**Un défaut de la configuration de test**, et c'est le plus instructif. Playwright réutilisait un
-`next start` déjà lancé. Or `next start` lit `.next` paresseusement : une reconstruction sous ses
-pieds lui fait renvoyer 500 sur les Server Actions. Une exécution entière a donc accusé
-l'application d'un bug qui n'existait que dans le lanceur. La configuration reconstruit maintenant
-avant de démarrer, sur un port qui n'est qu'à elle.
-
-**Sept hypothèses fausses dans les tests eux-mêmes**, dont deux qui se répétaient :
-
-- Le premier produit de la grille est un amplificateur dont le stock vaut **un**. Les tests
-  d'incrément visent désormais une référence au stock connu, et non « la première carte ».
-- Pendant qu'une frontière Suspense se résout, React dépose le fragment reçu dans un `<div hidden>`
-  à la racine du document avant de le déplacer. L'élément existe brièvement **en double**, et un
-  sélecteur global lève une violation du mode strict selon la vitesse de la machine. Les
-  assertions ciblent `main`, hors zone de transit.
-- Chromium repose le focus sur `<body>` le temps d'une tabulation en fin de cycle dans un
-  `<dialog>` modal. Ce n'est pas une fuite, et exiger le contraire faisait échouer le test sur un
-  comportement correct du navigateur. L'assertion porte maintenant sur ce qui compte : aucun
-  élément focalisable hors du dialogue n'est jamais atteint.
-
-### Ce que les tests mesurent, et ce qu'ils ne mesurent pas
-
-Une nuance mesurée mérite d'être écrite, parce qu'elle corrige une affirmation de P7. **La coquille
-tient sans JavaScript, le contenu différé non.** L'en-tête, le pied de page, le fil d'Ariane et la
-navigation par catégories arrivent dans la coquille statique. L'accueil rend aussi ses produits,
-faute de `loading.tsx`. Mais `/products` et `/categories/<slug>` diffusent leur contenu en flux, et
-le remplacement du squelette est opéré par les scripts de React : sans eux, la grille et la barre
-de filtres ne sont pas visibles. C'est une propriété du rendu en flux, pas un défaut de cette
-application, mais elle contredit ce que P7 affirmait de la barre de filtres.
+Côté sécurité, le site n'envoyait aucun en-tête de protection. La CSP ajoutée est **sans nonce,
+délibérément** : la documentation de Next 16 indique qu'un nonce impose le rendu dynamique de
+chaque page, ce qui aurait défait le prérendu de P10. Une CSP trop stricte casse un site en
+silence ; six pages réelles et un parcours complet vérifient qu'elle ne bloque rien.
 
 ### État de la vérification
 
-| Suite | Volume | Portée |
-| --- | --- | --- |
-| Unitaires et composants | 214 | Services, utilitaires, schémas, composants |
-| Intégration | contre DynamoDB Local | Repositories, 11 patterns d'accès, routes API |
-| Bout en bout | 55 | 3 parcours critiques, responsive, chargement, prérendu |
+| Suite | Volume |
+| --- | --- |
+| Unitaires et composants | 236 |
+| Intégration (DynamoDB Local) | 78 |
+| Bout en bout | 67 |
 
-La CI compte trois jobs : `verify`, `integration`, `e2e`.
+### Ordre proposé pour P13
 
-### Ce qui reste, en dehors de la roadmap
+Les écarts de `docs/CONFORMITE.md` fixent la priorité :
 
-**La CI n'a toujours jamais tourné sur GitHub**, alors que le workflow est enregistré, actif, le
-dépôt public et les Actions activées. Signalé à chaque phase depuis P2. Cela demande une
-vérification dans l'onglet Actions du dépôt, que je ne peux pas faire d'ici.
-
-### Ordre proposé pour P12
-
-1. **P12.4** en premier, et non en quatrième : la règle de dépendance entre couches est le critère
-   d'architecture le plus visible à l'évaluation. Une violation trouvée tôt se corrige avant que la
-   revue générale ne s'appuie dessus.
-2. **P12.1** : revue complète du diff, phase par phase.
-3. **P12.3** : revue de sécurité, secrets, validation des entrées, exposition des erreurs, en-têtes.
-4. **P12.2** : passe de simplification, une fois qu'on sait ce qui est juste.
-5. **P12.6** : vérification finale contre le brief, puce par puce.
-6. **P12.5** : nettoyage de l'historique, en dernier, quand plus rien ne bouge.
+1. **Captures d'écran** d'abord (P13.2) : elles demandent le site en marche et nourrissent la
+   section fonctionnalités. Playwright peut les produire de façon reproductible, aux trois largeurs.
+2. **Les trois sections manquantes** du README : fonctionnalités (P13.2), structure du projet
+   (P13.4), configuration DynamoDB (P13.6).
+3. **Installation testée sur une copie vierge** du dépôt (P13.8), pas relue.
+4. Relecture de toute la documentation (P13.9), liens compris.

@@ -120,4 +120,5 @@ npm run db:seed           # alimentation idempotente du catalogue
 | P9 : États, résilience, a11y | ✅ Terminée |
 | P10 : Performance & SEO | ✅ Terminée |
 | P11 : Tests | ✅ Terminée |
-| P12 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
+| P12 : Qualité, revue & sécurité | ✅ Terminée |
+| P13 → P17 | ⬜ Voir la [roadmap](docs/ROADMAP.md) |
