@@ -1,10 +1,4 @@
-import {
-  BatchWriteCommand,
-  GetCommand,
-  PutCommand,
-  QueryCommand,
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { documentClient, TABLE_NAME } from "@/lib/dynamodb";
 import { NotFoundError } from "@/lib/errors";
@@ -12,6 +6,7 @@ import { userKey } from "@/lib/keys";
 import { sessionExpiresAt } from "@/lib/ttl";
 import type { User, UserProfileUpdate } from "@/schemas/user";
 
+import { deleteAllKeys, queryAllKeys } from "./batch";
 import { withDynamoErrors } from "./dynamo-errors";
 import { toUser } from "./mappers";
 
@@ -161,29 +156,15 @@ export const userRepository = {
    */
   async deleteAll(userId: string): Promise<number> {
     return withDynamoErrors("effacement des données d'un utilisateur", async () => {
-      const { Items } = await documentClient.send(
-        new QueryCommand({
-          TableName: TABLE_NAME,
-          KeyConditionExpression: "PK = :pk",
-          ExpressionAttributeValues: { ":pk": userKey(userId).PK },
-          ProjectionExpression: "PK, SK",
-        }),
-      );
+      // Toutes les pages, et tous les refus rejoués : le nombre retourné est
+      // celui des items effectivement supprimés, pas celui des tentatives.
+      const keys = await queryAllKeys(documentClient, {
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: { ":pk": userKey(userId).PK },
+      });
 
-      const keys = (Items ?? []).map((item) => ({ PK: item["PK"], SK: item["SK"] }));
-      if (keys.length === 0) return 0;
-
-      for (let start = 0; start < keys.length; start += 25) {
-        await documentClient.send(
-          new BatchWriteCommand({
-            RequestItems: {
-              [TABLE_NAME]: keys
-                .slice(start, start + 25)
-                .map((Key) => ({ DeleteRequest: { Key } })),
-            },
-          }),
-        );
-      }
+      await deleteAllKeys(documentClient, TABLE_NAME, keys);
 
       return keys.length;
     });

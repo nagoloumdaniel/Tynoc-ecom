@@ -1,9 +1,4 @@
-import {
-  BatchWriteCommand,
-  DeleteCommand,
-  QueryCommand,
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { documentClient, TABLE_NAME } from "@/lib/dynamodb";
 import { NotFoundError, ValidationError } from "@/lib/errors";
@@ -11,6 +6,7 @@ import { CART_SK_PREFIX, cartItemKey, userKey } from "@/lib/keys";
 import { sessionExpiresAt } from "@/lib/ttl";
 import type { CartItem } from "@/schemas/cart";
 
+import { deleteAllKeys, queryAllKeys } from "./batch";
 import { withDynamoErrors } from "./dynamo-errors";
 import { toCartItem } from "./mappers";
 
@@ -155,32 +151,18 @@ export const cartRepository = {
    */
   async clear(userId: string): Promise<void> {
     await withDynamoErrors("vidage du panier", async () => {
-      const { Items } = await documentClient.send(
-        new QueryCommand({
-          TableName: TABLE_NAME,
-          KeyConditionExpression: "PK = :pk AND begins_with(SK, :prefix)",
-          ExpressionAttributeValues: {
-            ":pk": userKey(userId).PK,
-            ":prefix": CART_SK_PREFIX,
-          },
-          ProjectionExpression: "PK, SK",
-        }),
-      );
+      const keys = await queryAllKeys(documentClient, {
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "PK = :pk AND begins_with(SK, :prefix)",
+        ExpressionAttributeValues: {
+          ":pk": userKey(userId).PK,
+          ":prefix": CART_SK_PREFIX,
+        },
+      });
 
-      const keys = (Items ?? []).map((item) => ({ PK: item["PK"], SK: item["SK"] }));
-      if (keys.length === 0) return;
-
-      for (let start = 0; start < keys.length; start += 25) {
-        await documentClient.send(
-          new BatchWriteCommand({
-            RequestItems: {
-              [TABLE_NAME]: keys
-                .slice(start, start + 25)
-                .map((Key) => ({ DeleteRequest: { Key } })),
-            },
-          }),
-        );
-      }
+      // Les refus sous limitation de débit sont rejoués : un panier annoncé
+      // vide doit l'être réellement.
+      await deleteAllKeys(documentClient, TABLE_NAME, keys);
     });
   },
 };
