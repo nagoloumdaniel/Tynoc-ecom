@@ -33,16 +33,17 @@ for (const { label, path, status } of CASES) {
     const response = await page.goto(path);
 
     expect(response?.status()).toBe(status);
-    // Indispensable quand le statut reste 200 : sans lui, un moteur
-    // indexerait la page introuvable comme une vraie page.
-    expect(await page.locator('meta[name="robots"][content*="noindex"]').count()).toBeGreaterThan(
-      0,
-    );
-
     await expect(
       page.getByRole("heading", { level: 1, name: "Cette page n'existe pas." }),
     ).toBeVisible();
     await expect(page.getByText(/base de données/)).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Parcourir le catalogue" })).toBeVisible();
+
+    // Indispensable quand le statut reste 200 : sans lui, un moteur
+    // indexerait la page introuvable comme une vraie page. Lu après le titre,
+    // donc une fois la réponse en flux arrivée.
+    expect(await page.locator('meta[name="robots"][content*="noindex"]').count()).toBeGreaterThan(
+      0,
+    );
   });
 }
