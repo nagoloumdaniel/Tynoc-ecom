@@ -5,6 +5,7 @@ import {
   newSessionId,
   sessionCookieName,
   sessionCookieOptions,
+  shouldRefreshSession,
   signSession,
   verifySession,
 } from "@/lib/session";
@@ -137,5 +138,17 @@ describe("cookie", () => {
     // Sans `maxAge`, le cookie est un cookie de session au sens du navigateur
     // et disparaît à la fermeture : le panier ne survivrait pas à la visite.
     expect(SESSION_MAX_AGE_SECONDS).toBeGreaterThan(0);
+  });
+});
+
+describe("shouldRefreshSession", () => {
+  // Le cookie doit vivre aussi longtemps que les données qu'il désigne, dont
+  // le TTL repart à chaque écriture.
+  it.each(["POST", "PUT", "PATCH", "DELETE", "post"])("renouvelle sur %s", (method) => {
+    expect(shouldRefreshSession(method)).toBe(true);
+  });
+
+  it.each(["GET", "HEAD", "OPTIONS", "get"])("ne renouvelle pas sur %s", (method) => {
+    expect(shouldRefreshSession(method)).toBe(false);
   });
 });

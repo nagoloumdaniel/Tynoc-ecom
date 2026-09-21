@@ -116,3 +116,24 @@ export function verifySession(secret: string, token: string | undefined): string
 
   return userId;
 }
+
+/** Méthodes qui ne modifient rien : elles ne renouvellent pas la session. */
+const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
+ * Faut-il renouveler un cookie **valide** sur cette requête ?
+ *
+ * Le jeton ne porte aucune date : c'est la `maxAge` du navigateur qui le fait
+ * expirer. Posé une seule fois, il mourait 90 jours après la première visite,
+ * alors que les données en base repartent pour 90 jours à chaque écriture. Un
+ * visiteur actif perdait donc panier et favoris au 90e jour, sur une session
+ * dont les données étaient bien vivantes (trouvé en revue, P12.1).
+ *
+ * Le renouvellement suit exactement le renouvellement des données : sur les
+ * requêtes d'écriture, qui sont celles qui repoussent le TTL en base. Server
+ * Actions comprises, puisqu'elles arrivent en `POST`. La navigation en lecture
+ * continue de ne coûter aucun en-tête `Set-Cookie`.
+ */
+export function shouldRefreshSession(method: string): boolean {
+  return !READ_METHODS.has(method.toUpperCase());
+}
