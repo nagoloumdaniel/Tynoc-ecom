@@ -257,7 +257,6 @@ re-rendue dans la même réponse.
 | `addToCartAction` | `server/actions/cart` | Récapitulatif + `adjusted` |
 | `setCartQuantityAction` | `server/actions/cart` | Récapitulatif + `adjusted` |
 | `removeFromCartAction` | `server/actions/cart` | Récapitulatif |
-| `clearCartAction` | `server/actions/cart` | Récapitulatif |
 | `toggleWishlistAction` | `server/actions/wishlist` | `{ inWishlist }` |
 | `removeFromWishlistAction` | `server/actions/wishlist` | Entrées restantes |
 | `moveToCartAction` | `server/actions/wishlist` | Récapitulatif du panier |

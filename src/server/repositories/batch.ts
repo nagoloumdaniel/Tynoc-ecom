@@ -24,7 +24,7 @@ import {
  */
 
 /** Plafond imposé par DynamoDB pour un `BatchWriteItem`. */
-export const BATCH_WRITE_LIMIT = 25;
+const BATCH_WRITE_LIMIT = 25;
 
 /** Nombre de rejeux des requêtes refusées avant d'abandonner. */
 const MAX_RETRIES = 5;

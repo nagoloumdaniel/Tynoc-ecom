@@ -38,7 +38,13 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32, "SESSION_SECRET doit faire au moins 32 caractères"),
 
   // --- Application ---
-  NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
+  // Normalisée ici, une fois : sans barre finale, pour que `${url}/products`
+  // ne produise jamais de double barre. Chaque appelant la retirait lui-même,
+  // cinq fois de la même façon (P12.2).
+  NEXT_PUBLIC_SITE_URL: z
+    .url()
+    .default("http://localhost:3000")
+    .transform((url) => url.replace(/\/+$/, "")),
 });
 
 export type Env = z.infer<typeof envSchema>;

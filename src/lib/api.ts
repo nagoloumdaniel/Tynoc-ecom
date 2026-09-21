@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import type { ZodType } from "zod";
 
 import {
-  isAppError,
   toAppError,
   UnsupportedMediaTypeError,
   ValidationError,
@@ -219,6 +218,3 @@ export async function readJsonBody<T>(request: Request, schema: ZodType<T>): Pro
 
   return parsed.data;
 }
-
-/** Vrai quand l'erreur vient du domaine, utile aux Server Actions. */
-export { isAppError };

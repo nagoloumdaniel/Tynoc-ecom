@@ -11,7 +11,7 @@ import { env } from "@/lib/env";
  * chaque passage, donc un item en base pour rien.
  */
 export default function robots(): MetadataRoute.Robots {
-  const base = env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const base = env.NEXT_PUBLIC_SITE_URL;
 
   return {
     rules: {
